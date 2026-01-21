@@ -161,20 +161,23 @@ backend/
 3. Run with `python main.py` and verify it starts correctly
 
 ### Saving OpenCode Session Logs
-At the end of each OpenCode session, export the conversation to save it to GitHub:
+At the end of each OpenCode session, copy the conversation to save it to GitHub:
 
 ```bash
-# Export current session as JSON (will prompt to select session if no ID provided)
-opencode export [sessionID]
+# Copia a sessão atual para o clipboard (use dentro do OpenCode)
+/copy
 
 # Example workflow
-opencode export > logs/session-YYYY-MM-DD.json
-git add logs/session-YYYY-MM-DD.json
+# 1. Execute /copy no OpenCode para copiar a sessão
+# 2. Cole no arquivo de log e faça commit
+vim logs/opencode/session-YYYY-MM-DD.md
+git add logs/opencode/session-YYYY-MM-DD.md
 git commit -m "docs: adiciona log de sessão do OpenCode"
 ```
 
-- Creates `logs/` directory for session exports
-- Exports as JSON format (markdown not currently supported)
+- Creates `logs/opencode/` directory for session logs in markdown format
+- Use `/copy` command inside OpenCode TUI to copy current session
+- Saves as markdown for better readability and version control
 - Commit logs to track development history and conversations
 - Useful for debugging, documentation, and team collaboration
 
