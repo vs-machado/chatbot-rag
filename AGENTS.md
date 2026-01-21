@@ -24,6 +24,23 @@ When working on files, navigate to the appropriate directory first.
 ### Running Individual Tests
 No test framework is currently configured for either frontend or backend. Add test setup before writing tests.
 
+## DRY Principle (Don't Repeat Yourself)
+
+**IMPORTANT**: Before writing any new code, always search for existing constants, utilities, and configurations:
+
+1. **Search for constants**: Check `config.py` (backend) or `constants.ts` (frontend) before hardcoding values
+2. **Search for utilities**: Check `lib/` or `utils/` directories for existing helper functions
+3. **Search for similar patterns**: Use grep/search to find if similar code already exists in the codebase
+4. **Centralize configuration**: All environment variables and configuration values should be defined in a single location (`config.py` for backend)
+
+```python
+# ✅ Good: Import from centralized config
+from config import DATABASE_URL
+
+# ❌ Bad: Duplicate hardcoded values
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://...")
+```
+
 ## Code Style Guidelines
 
 ### TypeScript Configuration (Frontend)
