@@ -1,24 +1,47 @@
 # Agent Guidelines for chatbot-rag
 
+## Project Structure
+
+This is a monorepo with separate frontend and backend:
+- `frontend/` - React + TypeScript + Vite application
+- `backend/` - FastAPI Python application
+
+When working on files, navigate to the appropriate directory first.
+
 ## Build/Lint/Testing Commands
 
-### Core Commands
+### Frontend Commands (run from `frontend/` directory)
 - `npm run dev` - Start Vite development server
 - `npm run build` - TypeScript compile + Vite production build
 - `npm run lint` - Run ESLint on all TS/TSX files
 - `npm run preview` - Preview production build locally
 
+### Backend Commands (run from `backend/` directory)
+- `python main.py` - Start FastAPI development server (runs on port 8000)
+- `uvicorn main:app --reload` - Alternative to start with auto-reload
+- `pip install -r requirements.txt` - Install Python dependencies
+
 ### Running Individual Tests
-No test framework is currently configured. Add test setup before writing tests.
+No test framework is currently configured for either frontend or backend. Add test setup before writing tests.
 
 ## Code Style Guidelines
 
-### TypeScript Configuration
+### TypeScript Configuration (Frontend)
 - **Strict mode**: Enabled (noImplicitAny, strictNullChecks, etc.)
 - **Target**: ES2022, modules: ESNext
 - **Type checking**: `noUnusedLocals`, `noUnusedParameters` enabled
 - **JSX**: react-jsx transform (no React import needed for JSX)
 - **Path aliases**: Use `@/` for src directory imports (e.g., `@/components`, `@/lib/utils`)
+
+### Python Style Guidelines (Backend)
+- **PEP 8 compliant**: Follow Python style guide
+- **Type hints**: Use type hints for function parameters and returns
+- **Docstrings**: Use Google-style or NumPy-style docstrings in Brazilian Portuguese
+- **Naming**:
+  - Functions: snake_case (e.g., `get_messages`, `send_message`)
+  - Classes: PascalCase (e.g., `MessageHandler`, `ChatService`)
+  - Constants: UPPER_SNAKE_CASE (e.g., `MAX_TOKENS`, `API_TIMEOUT`)
+  - Variables: Always use English (e.g., `user_name`, `is_loading`)
 
 ### Import Style
 ```typescript
@@ -41,12 +64,11 @@ import './App.css'
 - Use `export const` for utility functions and sub-components
 
 ### Error Handling
-- Use try/catch for async operations
-- Type errors appropriately: never use `any`
-- Leverage TypeScript strict mode for compile-time safety
+- **Frontend**: Use try/catch for async operations, type errors appropriately (never use `any`), leverage TypeScript strict mode
+- **Backend**: Use try/except for error handling, return appropriate HTTP status codes, use Pydantic for validation
 - Handle errors at appropriate boundaries (component level or service level)
 
-### Naming Conventions
+### Naming Conventions (Frontend)
 - **Components**: PascalCase (e.g., `ChatInterface`, `MessageList`)
 - **Functions**: camelCase (e.g., `fetchMessages`, `sendMessage`)
 - **Variables**: Always use English (e.g., `userName`, `isLoading`, `totalItems`)
@@ -56,10 +78,15 @@ import './App.css'
 - **CSS classes**: kebab-case for Tailwind, camelCase for CSS modules (if used)
 
 ### Code Documentation & Localization
-- **Comments**: Always write code comments in Brazilian Portuguese
+- **Comments**: Always write code comments in Brazilian Portuguese (both frontend and backend)
   ```typescript
   // Busca mensagens do servidor
   const fetchMessages = async () => { ... }
+  ```
+  ```python
+  # Busca mensagens do servidor
+  def fetch_messages():
+      pass
   ```
 - **Colors**: Use Tailwind color classes instead of hardcoded hex values
   ```typescript
@@ -70,7 +97,7 @@ import './App.css'
   <div style={{ backgroundColor: '#3b82f6', color: '#ffffff' }}>
   ```
 
-### Styling
+### Styling (Frontend)
 - **Framework**: Tailwind CSS v4 with @tailwindcss/vite plugin
 - **CSS variables**: Defined in src/index.css for theming
 - **Utility**: Use `cn()` helper from `@/lib/utils` for class merging
@@ -79,15 +106,22 @@ import './App.css'
 
 ### File Organization
 ```
-src/
-├── components/
-│   └── ui/           # shadcn/ui components
-├── lib/              # Utilities (cn helper)
-├── hooks/            # Custom React hooks
-├── assets/           # Images, static files
-├── App.tsx           # Root component
-├── main.tsx          # Entry point
-└── index.css         # Global styles + Tailwind imports
+frontend/
+├── src/
+│   ├── components/
+│   │   └── ui/           # shadcn/ui components
+│   ├── lib/              # Utilities (cn helper)
+│   ├── hooks/            # Custom React hooks
+│   ├── assets/           # Images, static files
+│   ├── App.tsx           # Root component
+│   ├── main.tsx          # Entry point
+│   └── index.css         # Global styles + Tailwind imports
+└── package.json
+
+backend/
+├── main.py               # FastAPI application entry point
+├── requirements.txt      # Python dependencies
+└── README.md
 ```
 
 ### React Best Practices
@@ -112,6 +146,7 @@ src/
 - No unused variables (locals and parameters)
 
 ### Before Submitting Code
+**Frontend:**
 1. Run `npm run lint` and fix all errors
 2. Run `npm run build` to ensure TypeScript compiles without errors
 3. Test in dev mode: `npm run dev`
@@ -119,6 +154,11 @@ src/
 5. Ensure all imports use `@/` alias where appropriate
 6. Check no unused imports or variables
 7. Verify types are properly inferred (minimal explicit type assertions)
+
+**Backend:**
+1. Ensure code passes linting (use flake8 or similar)
+2. Test the API endpoints
+3. Run with `python main.py` and verify it starts correctly
 
 ### Saving OpenCode Session Logs
 At the end of each OpenCode session, export the conversation to save it to GitHub:
@@ -130,7 +170,7 @@ opencode export [sessionID]
 # Example workflow
 opencode export > logs/session-YYYY-MM-DD.json
 git add logs/session-YYYY-MM-DD.json
-git commit -m "docs: add OpenCode session log"
+git commit -m "docs: adiciona log de sessão do OpenCode"
 ```
 
 - Creates `logs/` directory for session exports
@@ -142,5 +182,5 @@ git commit -m "docs: add OpenCode session log"
 - This repository uses standard git workflow
 - Branch from main/master for feature work
 - Commit frequently with descriptive messages in Brazilian Portuguese
-- Do not commit dist/ or node_modules/
+- Do not commit dist/, node_modules/, __pycache__/, .venv/
 - AGENTS.md is for agent guidance only
