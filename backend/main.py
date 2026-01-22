@@ -1,8 +1,26 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from routers import documents
+from database import engine, Base
+import models  # Importa para registrar os modelos
 
-app = FastAPI(title="Chatbot RAG API", version="0.1.0")
+# Lifespan para inicialização e cleanup
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Inicialização: cria tabelas se não existirem
+    # Habilita extensão pgvector e cria tabelas
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        conn.commit()
+    Base.metadata.create_all(bind=engine)
+    print("Tabelas criadas/verificadas com sucesso")
+    yield
+    # Cleanup (se necessário)
+    pass
+
+app = FastAPI(title="Chatbot RAG API", version="0.1.0", lifespan=lifespan)
 
 # Configuração de CORS para permitir requisições do frontend
 app.add_middleware(

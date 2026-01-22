@@ -24,18 +24,18 @@ router = APIRouter(
 @router.post("/upload", response_model=UploadResponse)
 async def upload_document(
     file: UploadFile = File(...),
-    model_config: Optional[str] = Form(None, description="JSON string com ModelConfig"),
-    chunk_size: Optional[int] = Form(None),
-    chunk_overlap: Optional[int] = Form(None),
+    model_configuration: Optional[str] = Form(None, alias="model_config"),
+    chunk_size: Optional[int] = Form(1000),
+    chunk_overlap: Optional[int] = Form(200),
     db: Session = Depends(get_db)
 ):
     """
     Faz upload de um arquivo (PDF, DOCX, TXT), processa e gera embeddings.
     """
     parsed_config = None
-    if model_config:
+    if model_configuration:
         try:
-            config_dict = json.loads(model_config)
+            config_dict = json.loads(model_configuration)
             parsed_config = ModelConfig(**config_dict)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Erro ao processar model_config: {str(e)}")
