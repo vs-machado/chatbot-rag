@@ -78,3 +78,9 @@ watchfiles==1.1.1
 websockets==16.0
 xxhash==3.6.0
 zstandard==0.25.0
+langchain-google-genai==2.1.4
+langchain-openai==0.3.9
+langchain-text-splitters==0.3.8
+pypdf==5.6.0
+python-docx==1.2.0
+aiofiles==25.1.0
