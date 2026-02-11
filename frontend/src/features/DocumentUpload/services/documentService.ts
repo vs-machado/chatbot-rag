@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { api } from './api'
+import { api } from '@/services/api'
 import { CHUNK_SIZE, CHUNK_OVERLAP } from '../config'
 import type { UploadResponse } from '../types'
 
@@ -25,6 +25,3 @@ export const uploadDocument = async (file: File): Promise<UploadResponse> => {
     throw error
   }
 }
-
-// Re-exporta a instância do axios para uso em outros serviços
-export { api }

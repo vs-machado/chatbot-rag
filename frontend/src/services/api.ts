@@ -1,7 +1,8 @@
 import axios from 'axios'
-import { API_URL } from '../config'
 
-// Cria instância do axios com configuração base
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+// Instância global do axios
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -13,7 +14,6 @@ export const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Tratamento padrão de erros
     if (error.response) {
       // Erro da resposta do servidor
       console.error('API Error:', error.response.data)
@@ -24,3 +24,5 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+export default api
