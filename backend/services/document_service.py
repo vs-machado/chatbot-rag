@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional
+from typing import Optional
 
 import docx
 from fastapi import HTTPException, UploadFile
@@ -89,7 +89,7 @@ def process_and_create_documents_from_file(
     chunk_size: int = CHUNK_SIZE,
     chunk_overlap: int = CHUNK_OVERLAP,
     model_config: Optional[ModelConfig] = None,
-) -> List[Document]:
+) -> list[Document]:
     """Processa um arquivo, divide em chunks e cria documentos."""
     text = _read_file_content(file)
     if not text.strip():
@@ -139,7 +139,7 @@ def process_and_create_documents_from_file(
     return created_docs
 
 
-def list_documents(db: Session, skip: int = 0, limit: int = 100) -> List[Document]:
+def list_documents(db: Session, skip: int = 0, limit: int = 100) -> list[Document]:
     """Lista documentos paginados."""
     return db.query(Document).order_by(desc(Document.created_at)).offset(skip).limit(limit).all()
 
@@ -161,7 +161,7 @@ def delete_document(db: Session, document_id: uuid.UUID) -> bool:
 
 def search_documents(
     db: Session, query: str, top_k: int = 5, model_config: Optional[ModelConfig] = None
-) -> List[DocumentSearchResult]:
+) -> list[DocumentSearchResult]:
     """Busca documentos semanticamente similares."""
     # Extrai configs
     provider = model_config.provider if model_config else None

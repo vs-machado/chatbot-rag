@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from database import Base, engine
 from routers import documents
@@ -10,10 +11,12 @@ from routers import documents
 # Lifespan para inicialização e cleanup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Gerencia o ciclo de vida da aplicação.
+
+    Inicializa o banco de dados e cria tabelas na startup.
+    """
     # Inicialização: cria tabelas se não existirem
     # Habilita extensão pgvector e cria tabelas
-    from sqlalchemy import text
-
     with engine.connect() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         conn.commit()
@@ -41,16 +44,28 @@ app.include_router(documents.router)
 
 @app.get("/")
 def read_root():
+    """Endpoint raiz da API.
+
+    Retorna mensagem de status da API.
+    """
     return {"message": "API do Chatbot RAG está funcionando", "status": "online"}
 
 
 @app.get("/health")
 def health_check():
+    """Endpoint de health check.
+
+    Retorna o status de saúde da API.
+    """
     return {"status": "healthy"}
 
 
 @app.get("/api/v1/chat")
 def get_chat():
+    """Endpoint de chat.
+
+    Retorna mensagem indicando que o endpoint está em desenvolvimento.
+    """
     return {"message": "Endpoint de chat em desenvolvimento"}
 
 

@@ -23,4 +23,5 @@ class Document(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def __repr__(self):
+        """Retorna representação string do documento."""
         return f"<Document(id={self.id}, title='{self.title}')>"

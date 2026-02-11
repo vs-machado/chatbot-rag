@@ -33,6 +33,8 @@ class DocumentCreate(BaseModel):
     )
 
     class Config:
+        """Configuração do Pydantic para permitir alias."""
+
         populate_by_name = True
 
 
@@ -48,6 +50,8 @@ class DocumentUploadConfig(BaseModel):
     chunk_overlap: Optional[int] = Field(None, ge=0, le=1000, description="Overlap entre chunks")
 
     class Config:
+        """Configuração do Pydantic para permitir alias."""
+
         populate_by_name = True
 
 
@@ -63,6 +67,8 @@ class DocumentResponse(BaseModel):
     updated_at: datetime
 
     class Config:
+        """Configuração do Pydantic para permitir aliases e converter de atributos."""
+
         from_attributes = True
         populate_by_name = True
 
@@ -86,6 +92,8 @@ class DocumentSearchRequest(BaseModel):
     )
 
     class Config:
+        """Configuração do Pydantic para permitir alias."""
+
         populate_by_name = True
 
 

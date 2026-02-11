@@ -26,6 +26,7 @@ async def upload_document_controller(
     db: Session,
 ) -> UploadResponse:
     """Controller para upload de documentos.
+
     Faz upload de um arquivo (PDF, DOCX, TXT), processa e gera embeddings.
     """
     parsed_config = None
@@ -34,7 +35,7 @@ async def upload_document_controller(
             config_dict = json.loads(model_configuration)
             parsed_config = ModelConfig(**config_dict)
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Erro ao processar model_config: {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Erro ao processar model_config: {str(e)}") from e
 
     try:
         created_docs = document_service.process_and_create_documents_from_file(
@@ -53,11 +54,12 @@ async def upload_document_controller(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}") from e
 
 
 def list_documents_controller(skip: int, limit: int, db: Session) -> DocumentListResponse:
     """Controller para listar documentos.
+
     Lista todos os documentos armazenados com paginação.
     """
     docs = document_service.list_documents(db, skip=skip, limit=limit)
@@ -70,6 +72,7 @@ def list_documents_controller(skip: int, limit: int, db: Session) -> DocumentLis
 
 def delete_document_controller(document_id: uuid.UUID, db: Session) -> None:
     """Controller para deletar documento.
+
     Remove um documento pelo ID.
     """
     success = document_service.delete_document(db, document_id)
@@ -81,6 +84,7 @@ def search_documents_controller(
     request: DocumentSearchRequest, db: Session
 ) -> DocumentSearchResponse:
     """Controller para busca semântica.
+
     Realiza busca semântica nos documentos.
     """
     try:
@@ -90,6 +94,6 @@ def search_documents_controller(
 
         return DocumentSearchResponse(results=results, query=request.query, total=len(results))
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro na busca: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro na busca: {str(e)}") from e

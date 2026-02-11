@@ -47,6 +47,7 @@ ignore = [
     "D104",  # Missing docstring in public package
     "D107",  # Missing docstring in __init__
     "E501",  # Line too long (handled by formatter)
+    "B008",  # function-call-in-default-argument (FastAPI pattern)
 ]
 
 # Ativar correções automáticas
