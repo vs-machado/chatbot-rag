@@ -1,4 +1,4 @@
-import DocumentUpload from '@/features/DocumentUpload'
+import { DocumentUpload } from '@/features/DocumentUpload'
 import { ModeToggle } from '@/features/mode-toggle'
 import './App.css'
 
