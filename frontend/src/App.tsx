@@ -1,5 +1,5 @@
-import DocumentUpload from '@/components/DocumentUpload'
-import { ModeToggle } from '@/components/mode-toggle'
+import DocumentUpload from '@/features/DocumentUpload'
+import { ModeToggle } from '@/features/mode-toggle'
 import './App.css'
 
 function App() {
