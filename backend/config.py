@@ -1,5 +1,6 @@
 import os
 from enum import Enum
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -7,6 +8,7 @@ load_dotenv()
 
 class EmbeddingProvider(str, Enum):
     """Provedores de embedding disponíveis."""
+
     SENTENCE_TRANSFORMERS = "sentence_transformers"
     GOOGLE = "google"
     OPENAI = "openai"
@@ -14,14 +16,14 @@ class EmbeddingProvider(str, Enum):
 
 class LLMProvider(str, Enum):
     """Provedores de LLM disponíveis."""
+
     GOOGLE = "google"
     OPENAI = "openai"
 
 
 # Configuração do banco de dados
 DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+psycopg2://user:password@localhost:5432/chatbot_rag"
+    "DATABASE_URL", "postgresql+psycopg2://user:password@localhost:5432/chatbot_rag"
 )
 
 # Configuração de embeddings

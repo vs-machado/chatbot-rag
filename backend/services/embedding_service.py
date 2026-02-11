@@ -1,14 +1,15 @@
-from typing import Optional, Union, List
-from sentence_transformers import SentenceTransformer
+from typing import List, Optional
+
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
+from sentence_transformers import SentenceTransformer
 
 from config import (
-    EmbeddingProvider,
-    EMBEDDING_PROVIDER,
     EMBEDDING_MODEL,
+    EMBEDDING_PROVIDER,
     GOOGLE_API_KEY,
     OPENAI_API_KEY,
+    EmbeddingProvider,
 )
 
 # Instância singleton do modelo local de embeddings
@@ -31,16 +32,15 @@ def generate_embedding(
     google_api_key: Optional[str] = None,
     openai_api_key: Optional[str] = None,
 ) -> List[float]:
-    """
-    Gera um vetor de embedding para o texto fornecido.
-    
+    """Gera um vetor de embedding para o texto fornecido.
+
     Args:
         text: Texto para gerar o embedding.
         provider: Provedor de embedding (google, openai, sentence_transformers).
         model: Nome do modelo.
         google_api_key: API Key do Google (se provider=google).
         openai_api_key: API Key da OpenAI (se provider=openai).
-        
+
     Returns:
         Lista de floats representando o vetor de embedding.
     """
@@ -48,7 +48,7 @@ def generate_embedding(
     if hasattr(provider, "value"):
         provider = provider.value
     provider = str(provider).lower()
-        
+
     model = model or EMBEDDING_MODEL
 
     if provider == EmbeddingProvider.SENTENCE_TRANSFORMERS:
@@ -60,22 +60,16 @@ def generate_embedding(
         api_key = google_api_key or GOOGLE_API_KEY
         if not api_key:
             raise ValueError("Google API key não configurada.")
-        
-        embeddings_service = GoogleGenerativeAIEmbeddings(
-            model=model,
-            google_api_key=api_key
-        )
+
+        embeddings_service = GoogleGenerativeAIEmbeddings(model=model, google_api_key=api_key)
         return embeddings_service.embed_query(text)
 
     elif provider == EmbeddingProvider.OPENAI:
         api_key = openai_api_key or OPENAI_API_KEY
         if not api_key:
             raise ValueError("OpenAI API key não configurada.")
-            
-        embeddings_service = OpenAIEmbeddings(
-            model=model,
-            api_key=api_key
-        )
+
+        embeddings_service = OpenAIEmbeddings(model=model, api_key=api_key)
         return embeddings_service.embed_query(text)
 
     else:
@@ -89,14 +83,12 @@ def generate_embeddings(
     google_api_key: Optional[str] = None,
     openai_api_key: Optional[str] = None,
 ) -> List[List[float]]:
-    """
-    Gera vetores de embedding para múltiplos textos.
-    """
+    """Gera vetores de embedding para múltiplos textos."""
     provider = provider or EMBEDDING_PROVIDER
     if hasattr(provider, "value"):
         provider = provider.value
     provider = str(provider).lower()
-        
+
     model = model or EMBEDDING_MODEL
 
     if provider == EmbeddingProvider.SENTENCE_TRANSFORMERS:
@@ -108,22 +100,16 @@ def generate_embeddings(
         api_key = google_api_key or GOOGLE_API_KEY
         if not api_key:
             raise ValueError("Google API key não configurada.")
-            
-        embeddings_service = GoogleGenerativeAIEmbeddings(
-            model=model,
-            google_api_key=api_key
-        )
+
+        embeddings_service = GoogleGenerativeAIEmbeddings(model=model, google_api_key=api_key)
         return embeddings_service.embed_documents(texts)
 
     elif provider == EmbeddingProvider.OPENAI:
         api_key = openai_api_key or OPENAI_API_KEY
         if not api_key:
             raise ValueError("OpenAI API key não configurada.")
-            
-        embeddings_service = OpenAIEmbeddings(
-            model=model,
-            api_key=api_key
-        )
+
+        embeddings_service = OpenAIEmbeddings(model=model, api_key=api_key)
         return embeddings_service.embed_documents(texts)
 
     else:

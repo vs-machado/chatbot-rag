@@ -1,15 +1,17 @@
-from sqlalchemy import Column, String, Text, DateTime
-from sqlalchemy.dialects.postgresql import UUID
-from pgvector.sqlalchemy import Vector
-from database import Base
-from config import EMBEDDING_DIMENSION
 import uuid
 from datetime import datetime
+
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import Column, DateTime, String, Text
+from sqlalchemy.dialects.postgresql import UUID
+
+from config import EMBEDDING_DIMENSION
+from database import Base
 
 
 class Document(Base):
     """Modelo para armazenar documentos com embeddings vetoriais."""
-    
+
     __tablename__ = "documents"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
