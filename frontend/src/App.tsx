@@ -1,59 +1,14 @@
-import { DocumentUpload } from '@/features/DocumentUpload'
-import { ModeToggle } from '@/features/mode-toggle'
-import './App.css'
+import { Routes, Route } from 'react-router'
+import { Layout, HomePage, DocumentUploadPage } from '@/pages'
 
 function App() {
   return (
-    <div className="min-h-screen bg-background font-sans antialiased relative">
-      <div className="absolute top-4 right-4 z-50">
-        <ModeToggle />
-      </div>
-      
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-primary"
-            >
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" x2="12" y1="19" y2="22" />
-            </svg>
-            <h1 className="text-xl font-bold">Chatbot RAG</h1>
-          </div>
-          <nav className="flex items-center gap-4">
-            <a href="#" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-              Chat
-            </a>
-            <a href="#" className="text-sm font-medium text-foreground">
-              Documentos
-            </a>
-          </nav>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto max-w-4xl py-10 px-4">
-        <div className="text-center space-y-2 mb-10">
-          <h2 className="text-3xl font-bold tracking-tight">Gerenciar Base de Conhecimento</h2>
-          <p className="text-muted-foreground text-lg">
-            Faça upload de documentos para alimentar seu chatbot com conhecimento personalizado
-          </p>
-        </div>
-        
-        <DocumentUpload />
-      </main>
-    </div>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<HomePage />} />
+        <Route path="documentos" element={<DocumentUploadPage />} />
+      </Route>
+    </Routes>
   )
 }
 
