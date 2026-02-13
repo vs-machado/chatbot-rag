@@ -7,11 +7,7 @@ import { ChatMessage } from "./components/ChatMessage";
 import { ChatSidebar } from "./components/ChatSidebar";
 import { useChat } from "./hooks/useChat";
 import { NEW_CHAT_TITLE } from "./constants";
-
-const TIME_FORMAT = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-});
+import { formatTime } from "@/lib/time";
 
 export function Chat() {
   const {
@@ -60,7 +56,7 @@ export function Chat() {
                 key={message.id}
                 role={message.role}
                 content={message.content}
-                timestamp={TIME_FORMAT.format(message.timestamp)}
+                timestamp={formatTime(message.timestamp)}
               />
             ))}
             {isLoading && (
