@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ChatHeader } from "./components/ChatHeader";
@@ -25,6 +26,14 @@ export function Chat() {
     handleSendMessage,
   } = useChat();
 
+  // Ref para o container de mensagens para auto-scroll
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll para a última mensagem quando mensagens mudam ou loading muda
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activeMessages, isLoading]);
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <ChatSidebar
@@ -35,11 +44,12 @@ export function Chat() {
         onSelectSession={handleSelectSession}
       />
 
-      <main className="relative flex min-w-0 flex-1 flex-col">
+      <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <ChatHeader title={activeSession?.title ?? NEW_CHAT_TITLE} />
 
-        <ScrollArea className="flex-1">
-          <div className="space-y-8 px-4 pt-4 pb-32 sm:px-6 lg:px-10">
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="space-y-8 px-4 pt-4 pb-4 sm:px-6 lg:px-10">
             {error && (
               <Alert variant="destructive" className="mb-4">
                 <AlertDescription>{error}</AlertDescription>
@@ -62,16 +72,17 @@ export function Chat() {
                 </div>
               </div>
             )}
+            {/* Elemento âncora para auto-scroll */}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
+        </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0">
-          <div className="pointer-events-auto">
-            <ChatInput
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading}
-            />
-          </div>
+        <div className="flex-shrink-0">
+          <ChatInput
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+          />
         </div>
       </main>
     </div>
