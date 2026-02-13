@@ -1,4 +1,5 @@
-import { Bot, Copy } from "lucide-react";
+import { useState } from "react";
+import { Bot, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +12,20 @@ interface ChatMessageProps {
 
 export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
   const isUser = role === "user";
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      // TODO: Adicionar sanitização de HTML para remover tags ao copiar
+      // O conteúdo atual pode conter elementos HTML que aparecem no texto copiado
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      // Reseta o estado após 2 segundos
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Erro ao copiar para a área de transferência:", err);
+    }
+  };
 
   return (
     <div className={cn("flex gap-4 max-w-4xl mx-auto", isUser && "flex-row-reverse")}>
@@ -46,9 +61,28 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
             />
 
             <div className="flex items-center gap-2 pt-1">
-              <Button variant="ghost" size="sm" className="h-7 text-muted-foreground hover:text-foreground text-xs gap-1">
-                <Copy className="h-3.5 w-3.5" />
-                Copy
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={cn(
+                  "h-7 text-xs gap-1 transition-colors",
+                  copied 
+                    ? "text-green-600 hover:text-green-700" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={handleCopy}
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" />
+                    Copy
+                  </>
+                )}
               </Button>
             </div>
           </div>
