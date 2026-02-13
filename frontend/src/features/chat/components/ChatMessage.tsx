@@ -1,4 +1,4 @@
-import { Bot, ThumbsUp, ThumbsDown, RotateCcw, Copy } from "lucide-react";
+import { Bot, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -46,17 +46,7 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
             />
 
             <div className="flex items-center gap-2 pt-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
-                <ThumbsUp className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
-                <ThumbsDown className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="h-7 text-muted-foreground hover:text-foreground text-xs gap-1 ml-2">
-                <RotateCcw className="h-3.5 w-3.5" />
-                Regenerate
-              </Button>
-              <Button variant="ghost" size="sm" className="h-7 text-muted-foreground hover:text-foreground text-xs gap-1 ml-auto">
+              <Button variant="ghost" size="sm" className="h-7 text-muted-foreground hover:text-foreground text-xs gap-1">
                 <Copy className="h-3.5 w-3.5" />
                 Copy
               </Button>
