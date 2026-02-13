@@ -1,14 +1,70 @@
-import { Plus, MessageSquare, Trash2, FileUp, Settings } from "lucide-react";
+import { useMemo } from "react";
+import { Plus, MessageSquare, FileUp, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import type { ChatSession } from "../types/types";
 
 interface ChatSidebarProps {
   className?: string;
+  sessions: ChatSession[];
+  activeSessionId: string;
+  onNewChat: () => void;
+  onSelectSession: (sessionId: string) => void;
 }
 
-export function ChatSidebar({ className }: ChatSidebarProps) {
+function getSessionGroupLabel(sessionDate: Date): string {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const sessionDay = new Date(
+    sessionDate.getFullYear(),
+    sessionDate.getMonth(),
+    sessionDate.getDate()
+  );
+  const diffInDays = Math.floor(
+    (today.getTime() - sessionDay.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  if (diffInDays <= 0) {
+    return "Today";
+  }
+
+  if (diffInDays === 1) {
+    return "Yesterday";
+  }
+
+  if (diffInDays <= 7) {
+    return "Previous 7 Days";
+  }
+
+  return "Older";
+}
+
+export function ChatSidebar({
+  className,
+  sessions,
+  activeSessionId,
+  onNewChat,
+  onSelectSession,
+}: ChatSidebarProps) {
+  const groupedSessions = useMemo(() => {
+    const groups: Record<string, ChatSession[]> = {};
+
+    sessions.forEach((session) => {
+      const label = getSessionGroupLabel(session.date);
+      const current = groups[label] ?? [];
+      groups[label] = [...current, session];
+    });
+
+    return groups;
+  }, [sessions]);
+
+  const sectionOrder = ["Today", "Yesterday", "Previous 7 Days", "Older"];
+  const visibleSections = sectionOrder.filter(
+    (section) => (groupedSessions[section] ?? []).length > 0
+  );
+
   return (
     <aside
       className={cn(
@@ -20,6 +76,7 @@ export function ChatSidebar({ className }: ChatSidebarProps) {
         <Button
           variant="outline"
           className="w-full justify-start gap-3 px-4 py-6 bg-background hover:bg-muted border-input shadow-sm"
+          onClick={onNewChat}
         >
           <div className="bg-primary/10 p-1 rounded-full">
             <Plus className="h-4 w-4 text-primary" />
@@ -30,79 +87,35 @@ export function ChatSidebar({ className }: ChatSidebarProps) {
 
       <ScrollArea className="flex-1 px-3">
         <div className="space-y-6 pb-4">
-          <div>
-            <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Today
-            </h3>
-            <div className="space-y-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-start px-3 py-2 h-auto font-normal bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary relative group"
-              >
-                <MessageSquare className="h-4 w-4 mr-3 opacity-70" />
-                <span className="truncate flex-1 text-left">Python Web Scraper</span>
-                <Trash2 className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive ml-2" />
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start px-3 py-2 h-auto font-normal hover:bg-muted text-muted-foreground relative group"
-              >
-                <MessageSquare className="h-4 w-4 mr-3 opacity-70" />
-                <span className="truncate flex-1 text-left">React Component Ideas</span>
-              </Button>
-            </div>
-          </div>
+          {visibleSections.map((section) => (
+            <div key={section}>
+              <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                {section}
+              </h3>
+              <div className="space-y-1">
+                {(groupedSessions[section] ?? []).map((session) => {
+                  const isActive = session.id === activeSessionId;
 
-          <div>
-            <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Yesterday
-            </h3>
-            <div className="space-y-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-start px-3 py-2 h-auto font-normal hover:bg-muted text-muted-foreground relative group"
-              >
-                <MessageSquare className="h-4 w-4 mr-3 opacity-70" />
-                <span className="truncate flex-1 text-left">Debugging Dockerfile</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start px-3 py-2 h-auto font-normal hover:bg-muted text-muted-foreground relative group"
-              >
-                <MessageSquare className="h-4 w-4 mr-3 opacity-70" />
-                <span className="truncate flex-1 text-left">Marketing Copy Drafts</span>
-              </Button>
+                  return (
+                    <Button
+                      key={session.id}
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start px-3 py-2 h-auto font-normal relative group",
+                        isActive
+                          ? "bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
+                          : "hover:bg-muted text-muted-foreground"
+                      )}
+                      onClick={() => onSelectSession(session.id)}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-3 opacity-70" />
+                      <span className="truncate flex-1 text-left">{session.title}</span>
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-
-          <div>
-            <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Previous 7 Days
-            </h3>
-            <div className="space-y-1">
-              <Button
-                variant="ghost"
-                className="w-full justify-start px-3 py-2 h-auto font-normal hover:bg-muted text-muted-foreground relative group"
-              >
-                <MessageSquare className="h-4 w-4 mr-3 opacity-70" />
-                <span className="truncate flex-1 text-left">SQL Query Optimization</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start px-3 py-2 h-auto font-normal hover:bg-muted text-muted-foreground relative group"
-              >
-                <MessageSquare className="h-4 w-4 mr-3 opacity-70" />
-                <span className="truncate flex-1 text-left">Gift Ideas for Mom</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start px-3 py-2 h-auto font-normal hover:bg-muted text-muted-foreground relative group"
-              >
-                <MessageSquare className="h-4 w-4 mr-3 opacity-70" />
-                <span className="truncate flex-1 text-left">Explain Quantum Physics</span>
-              </Button>
-            </div>
-          </div>
+          ))}
         </div>
       </ScrollArea>
 

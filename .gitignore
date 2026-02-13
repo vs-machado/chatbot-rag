@@ -46,3 +46,6 @@ ENV/
 # Docker
 *.log
 docker-compose.override.yml
+
+# Designs HTML samples
+html_samples

@@ -9,4 +9,5 @@ export interface ChatSession {
   id: string
   title: string
   date: Date
+  messages: Message[]
 }
