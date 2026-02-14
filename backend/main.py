@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from database import Base, engine
-from routers import documents
+from routers import chat, documents
 
 
 # Lifespan para inicialização e cleanup
@@ -40,6 +40,7 @@ app.add_middleware(
 
 # Inclui os roteadores
 app.include_router(documents.router)
+app.include_router(chat.router)
 
 
 @app.get("/")
@@ -58,15 +59,6 @@ def health_check():
     Retorna o status de saúde da API.
     """
     return {"status": "healthy"}
-
-
-@app.get("/api/v1/chat")
-def get_chat():
-    """Endpoint de chat.
-
-    Retorna mensagem indicando que o endpoint está em desenvolvimento.
-    """
-    return {"message": "Endpoint de chat em desenvolvimento"}
 
 
 if __name__ == "__main__":

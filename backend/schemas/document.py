@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class APIKeyConfig(BaseModel):
@@ -25,6 +25,8 @@ class ModelConfig(BaseModel):
 class DocumentCreate(BaseModel):
     """Schema para criação de documento via texto."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     title: str = Field(..., min_length=1, max_length=255, description="Título do documento")
     content: str = Field(..., min_length=1, description="Conteúdo do documento")
     metadata: Optional[dict] = Field(None, description="Metadados adicionais")
@@ -32,14 +34,11 @@ class DocumentCreate(BaseModel):
         None, alias="model_config", description="Configuração de modelo para embedding"
     )
 
-    class Config:
-        """Configuração do Pydantic para permitir alias."""
-
-        populate_by_name = True
-
 
 class DocumentUploadConfig(BaseModel):
     """Configuração para upload de arquivo."""
+
+    model_config = ConfigDict(populate_by_name=True)
 
     model_config_: Optional[ModelConfig] = Field(
         None, alias="model_config", description="Configuração de modelo para embedding"
@@ -49,14 +48,11 @@ class DocumentUploadConfig(BaseModel):
     )
     chunk_overlap: Optional[int] = Field(None, ge=0, le=1000, description="Overlap entre chunks")
 
-    class Config:
-        """Configuração do Pydantic para permitir alias."""
-
-        populate_by_name = True
-
 
 class DocumentResponse(BaseModel):
     """Schema de resposta para documento."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     id: UUID
     title: str
@@ -65,12 +61,6 @@ class DocumentResponse(BaseModel):
     has_embedding: bool = Field(..., description="Se o documento tem embedding gerado")
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        """Configuração do Pydantic para permitir aliases e converter de atributos."""
-
-        from_attributes = True
-        populate_by_name = True
 
 
 class DocumentListResponse(BaseModel):
@@ -85,16 +75,13 @@ class DocumentListResponse(BaseModel):
 class DocumentSearchRequest(BaseModel):
     """Schema para busca semântica de documentos."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     query: str = Field(..., min_length=1, description="Query de busca")
     top_k: int = Field(5, ge=1, le=100, description="Número de resultados")
     model_config_: Optional[ModelConfig] = Field(
         None, alias="model_config", description="Configuração de modelo para embedding da query"
     )
-
-    class Config:
-        """Configuração do Pydantic para permitir alias."""
-
-        populate_by_name = True
 
 
 class DocumentSearchResult(BaseModel):

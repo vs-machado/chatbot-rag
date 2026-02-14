@@ -50,7 +50,7 @@ EMBEDDING_DIMENSION = EMBEDDING_DIMENSIONS.get(EMBEDDING_MODEL, 384)
 
 # Configuração de LLM
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", LLMProvider.GOOGLE.value)
-LLM_MODEL = os.getenv("LLM_MODEL", "gemini-3-flash")
+LLM_MODEL = os.getenv("LLM_MODEL", "gemini-3-flash-preview")
 
 # API Keys (podem ser sobrescritas por requisição)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
