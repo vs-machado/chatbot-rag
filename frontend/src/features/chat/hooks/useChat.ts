@@ -1,17 +1,16 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChatSession, Message } from '../types/types'
-import { sendMessage } from '../services/chatService'
 import {
-  INITIAL_CHAT_SESSIONS,
-  NEW_CHAT_TITLE,
-  NEW_CHAT_WELCOME_MESSAGE,
-} from '../constants'
+  createChatSession,
+  listChatSessions,
+  sendMessageWithRAG,
+} from '../services/chatService'
+import { NEW_CHAT_TITLE, NEW_CHAT_WELCOME_MESSAGE } from '../constants'
 
-const createId = () => {
+const createLocalId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID()
   }
-
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
@@ -21,19 +20,38 @@ export interface UseChatReturn {
   activeSession: ChatSession | null
   activeMessages: Message[]
   isLoading: boolean
+  isInitialized: boolean
   error: string | null
   handleSelectSession: (sessionId: string) => void
-  handleNewChat: () => void
+  handleNewChat: () => Promise<void>
   handleSendMessage: (content: string) => Promise<void>
 }
 
 export const useChat = (): UseChatReturn => {
-  const [sessions, setSessions] = useState<ChatSession[]>(INITIAL_CHAT_SESSIONS)
-  const [activeSessionId, setActiveSessionId] = useState<string>(
-    INITIAL_CHAT_SESSIONS[0]?.id ?? ''
-  )
+  const [sessions, setSessions] = useState<ChatSession[]>([])
+  const [activeSessionId, setActiveSessionId] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  // Carrega sessões do backend na inicialização
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        const backendSessions = await listChatSessions()
+        if (backendSessions.length > 0) {
+          setSessions(backendSessions)
+          setActiveSessionId(backendSessions[0].id)
+        }
+        setIsInitialized(true)
+      } catch (err) {
+        console.error('Erro ao carregar sessões:', err)
+        setIsInitialized(true)
+      }
+    }
+
+    loadSessions()
+  }, [])
 
   const activeSession = useMemo(
     () => sessions.find((session) => session.id === activeSessionId) ?? null,
@@ -47,42 +65,54 @@ export const useChat = (): UseChatReturn => {
     setError(null)
   }, [])
 
-  const handleNewChat = useCallback(() => {
-    const now = new Date()
-    const newSessionId = createId()
-
-    const newSession: ChatSession = {
-      id: newSessionId,
-      title: NEW_CHAT_TITLE,
-      date: now,
-      messages: [
-        {
-          id: createId(),
-          role: NEW_CHAT_WELCOME_MESSAGE.role,
-          content: NEW_CHAT_WELCOME_MESSAGE.content,
-          timestamp: now,
-        },
-      ],
-    }
-
-    setSessions((currentSessions) => [newSession, ...currentSessions])
-    setActiveSessionId(newSessionId)
+  const handleNewChat = useCallback(async () => {
+    setIsLoading(true)
     setError(null)
+
+    try {
+      // Cria sessão no backend
+      const now = new Date()
+      const backendSession = await createChatSession(NEW_CHAT_TITLE)
+
+      // Adiciona mensagem de boas-vindas localmente
+      const newSession: ChatSession = {
+        ...backendSession,
+        messages: [
+          {
+            id: createLocalId(),
+            role: NEW_CHAT_WELCOME_MESSAGE.role,
+            content: NEW_CHAT_WELCOME_MESSAGE.content,
+            timestamp: now,
+          },
+        ],
+      }
+
+      setSessions((currentSessions) => [newSession, ...currentSessions])
+      setActiveSessionId(newSession.id)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Erro ao criar nova conversa. Tente novamente.'
+      )
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
 
   const handleSendMessage = useCallback(
     async (content: string) => {
-      if (!activeSessionId || isLoading) return
+      if (!isInitialized || !activeSessionId || isLoading) return
 
       const now = new Date()
       const userMessage: Message = {
-        id: createId(),
+        id: createLocalId(),
         role: 'user',
         content,
         timestamp: now,
       }
 
-      // Adiciona mensagem do usuário
+      // Adiciona mensagem do usuário localmente
       setSessions((currentSessions) =>
         currentSessions.map((session) =>
           session.id === activeSessionId
@@ -95,19 +125,13 @@ export const useChat = (): UseChatReturn => {
       setError(null)
 
       try {
-        // Pega o estado atualizado para enviar o histórico
-        const currentSession = sessions.find(s => s.id === activeSessionId)
-        const history = (currentSession?.messages ?? []).map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        }))
-
-        const response = await sendMessage(content, activeSessionId, history)
+        // Envia mensagem via RAG
+        const result = await sendMessageWithRAG(activeSessionId, content, 5)
 
         const assistantMessage: Message = {
-          id: createId(),
-          role: 'assistant',
-          content: response.response,
+          id: result.message.id,
+          role: result.message.role,
+          content: result.message.content,
           timestamp: new Date(),
         }
 
@@ -119,6 +143,11 @@ export const useChat = (): UseChatReturn => {
               : session
           )
         )
+
+        // Log para debugging (pode ser removido em produção)
+        if (result.contextUsed) {
+          console.log('Documentos usados:', result.sources)
+        }
       } catch (err) {
         setError(
           err instanceof Error
@@ -129,7 +158,7 @@ export const useChat = (): UseChatReturn => {
         setIsLoading(false)
       }
     },
-    [activeSessionId, sessions, isLoading]
+    [isInitialized, activeSessionId, isLoading]
   )
 
   return {
@@ -138,6 +167,7 @@ export const useChat = (): UseChatReturn => {
     activeSession,
     activeMessages,
     isLoading,
+    isInitialized,
     error,
     handleSelectSession,
     handleNewChat,

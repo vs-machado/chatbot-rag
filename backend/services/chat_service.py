@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import Optional
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -102,8 +103,8 @@ def add_message(
 
     db.add(db_message)
 
-    # Atualiza o updated_at da sessão
-    db_session.updated_at = db_message.timestamp
+    # Atualiza o updated_at da sessão com timestamp atual
+    db_session.updated_at = datetime.utcnow()
 
     db.commit()
     db.refresh(db_message)
@@ -244,7 +245,17 @@ def send_message_with_rag(
 
         chain = prompt_template | llm
         response = chain.invoke({"context": context, "question": user_message})
-        assistant_content = response.content
+
+        # Extrai o conteúdo da resposta (pode ser string ou lista em modelos multimodais)
+        raw_content = response.content
+        if isinstance(raw_content, list):
+            # Formato multimodal: concatena textos
+            assistant_content = " ".join(
+                item.get("text", "") for item in raw_content
+                if isinstance(item, dict) and item.get("type") == "text"
+            )
+        else:
+            assistant_content = str(raw_content)
 
     except Exception as e:
         assistant_content = f"Erro ao gerar resposta: {str(e)}"
