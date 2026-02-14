@@ -132,7 +132,7 @@ export function ChatSidebar({
       <div className="p-4 border-t space-y-2">
         <Button
           variant="ghost"
-          className="w-full justify-start px-2 py-6 h-auto hover:bg-muted group"
+          className="w-full justify-start px-1 py-1 h-auto hover:bg-muted group"
         >
           <Avatar className="h-8 w-8 mr-3 border">
             <AvatarImage src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQD5UnORwz1VbrJnNxbbEgOuT7KMEzzr-XTaFy39tTf1L-hhpKXfvqFzRnj0xeu0OG_nlQfO2qo5ZO4TtPnXKPKJLSAS-8oMaS5BQ2cCGo5mgZ4jmKjRSU_D6C7p8P_AXUmPFqdj2-ixMPkTjSf6qaIfDiPxdVe1Yl20xRw0Qh41Pz3m0XHVsThRSFsD0EFiokVS0h83kupoOKFRS53EFEs28HjxZor73lvnbs8Yqp32jCgWTWxT3x21uyFR4NBaL46V7TBH8h" alt="User Avatar" />
