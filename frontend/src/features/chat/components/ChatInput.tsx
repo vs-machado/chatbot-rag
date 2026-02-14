@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useState, useRef, type FormEvent, type KeyboardEvent } from 'react';
 import { Paperclip, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -9,12 +9,17 @@ interface ChatInputProps {
 
 export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
   const [message, setMessage] = useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (message.trim() && !isLoading) {
       onSendMessage(message.trim())
       setMessage('')
+      // Reseta a altura do textarea após enviar a mensagem
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+      }
     }
   }
 
@@ -46,15 +51,16 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
              <Paperclip className="h-5 w-5" />
            </Button>
            <textarea
-             className="w-full bg-transparent border-none py-3 text-[15px] leading-relaxed text-foreground placeholder-muted-foreground focus:ring-0 focus-visible:outline-none resize-none max-h-48 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-             placeholder="Message ChatGPT..."
-             rows={1}
-             style={{ minHeight: "48px" }}
-             value={message}
-             onChange={handleChange}
-             onKeyDown={handleKeyDown}
-             disabled={isLoading}
-           />
+              ref={textareaRef}
+              className="w-full bg-transparent border-none py-3 text-[15px] leading-relaxed text-foreground placeholder-muted-foreground focus:ring-0 focus-visible:outline-none resize-none max-h-48 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              placeholder="Message ChatGPT..."
+              rows={1}
+              style={{ minHeight: "48px" }}
+              value={message}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              disabled={isLoading}
+            />
            <Button
              type="submit"
              className="rounded-lg shadow-md mb-1 h-9 w-9 p-0 flex-shrink-0"
