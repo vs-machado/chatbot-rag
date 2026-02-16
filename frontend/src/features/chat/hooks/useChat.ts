@@ -186,11 +186,16 @@ export const useChat = (): UseChatReturn => {
           timestamp: new Date(),
         }
 
-        // Adiciona resposta do assistente
+        // Adiciona resposta do assistente e atualiza título se fornecido
         setSessions((currentSessions) =>
           currentSessions.map((s) =>
             s.id === backendSessionId
-              ? { ...s, messages: [...s.messages, assistantMessage] }
+              ? { 
+                  ...s, 
+                  messages: [...s.messages, assistantMessage],
+                  // Atualiza o título se foi gerado (na primeira mensagem)
+                  ...(result.title && { title: result.title })
+                }
               : s
           )
         )
@@ -198,6 +203,9 @@ export const useChat = (): UseChatReturn => {
         // Log para debugging (pode ser removido em produção)
         if (result.contextUsed) {
           console.log('Documentos usados:', result.sources)
+        }
+        if (result.title) {
+          console.log('Título gerado:', result.title)
         }
       } catch (err) {
         setError(

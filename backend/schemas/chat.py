@@ -126,3 +126,4 @@ class ChatRAGResponse(BaseModel):
     assistant_message: ChatMessageResponse
     sources: list[DocumentSource]
     context_used: bool
+    title: Optional[str] = Field(None, description="Título gerado para a sessão (apenas na primeira mensagem)")

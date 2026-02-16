@@ -281,6 +281,7 @@ def send_message_with_rag_controller(
             ),
             sources=[DocumentSource(**source) for source in result["sources"]],
             context_used=result["context_used"],
+            title=result.get("title"),
         )
     except ValueError as e:
         duration = time.time() - start_time

@@ -230,6 +230,9 @@ def send_message_with_rag(
     sys.stdout.flush()
 
     # 4. Constrói prompt RAG
+    # Verifica se é a primeira mensagem para gerar título depois
+    is_first_message = count_messages(db, session_id) == 1  # Só tem a mensagem do usuário que acabou de ser salva
+
     prompt_template = ChatPromptTemplate.from_messages(
         [
             (
@@ -247,6 +250,7 @@ def send_message_with_rag(
 
     # 5. Gera resposta com LLM
     step_start = time.time()
+    generated_title = None
     try:
         logger.info(f"[RAG Service] Iniciando geração LLM...")
         sys.stdout.flush()
@@ -271,6 +275,7 @@ def send_message_with_rag(
 
         # Extrai o conteúdo da resposta (pode ser string ou lista em modelos multimodais)
         raw_content = response.content
+
         if isinstance(raw_content, list):
             # Formato multimodal: concatena textos
             assistant_content = " ".join(
@@ -282,6 +287,54 @@ def send_message_with_rag(
 
         logger.info(f"[RAG Service] Geração LLM: {time.time() - step_start:.3f}s")
         sys.stdout.flush()
+
+        # 5.1. Gera título para a sessão se for a primeira mensagem
+        if is_first_message:
+            step_start = time.time()
+            try:
+                title_prompt = ChatPromptTemplate.from_messages(
+                    [
+                        (
+                            "system",
+                            "Gere um título curto e descritivo para esta conversa. "
+                            "Máximo 40 caracteres. Responda APENAS com o título, nada mais.",
+                        ),
+                        (
+                            "human",
+                            "{question}",
+                        ),
+                    ]
+                )
+                title_chain = title_prompt | llm
+                title_response = title_chain.invoke({"question": user_message})
+
+                # Extrai texto do título
+                title_raw = title_response.content
+                if isinstance(title_raw, list):
+                    generated_title = " ".join(
+                        item.get("text", "") for item in title_raw
+                        if isinstance(item, dict) and item.get("type") == "text"
+                    ).strip()
+                else:
+                    generated_title = str(title_raw).strip().strip('"').strip("'")
+
+                # Trunca se necessário
+                if generated_title and len(generated_title) > 60:
+                    generated_title = generated_title[:57] + "..."
+
+                if generated_title:
+                    logger.info(f"[RAG Service] Título gerado: {generated_title}")
+                    db_session = get_session(db, session_id)
+                    if db_session:
+                        db_session.title = generated_title
+                        db.commit()
+                        logger.info(f"[RAG Service] Título da sessão atualizado para: {generated_title}")
+
+                logger.info(f"[RAG Service] Geração título: {time.time() - step_start:.3f}s")
+                sys.stdout.flush()
+            except Exception as e:
+                logger.warning(f"[RAG Service] Falha ao gerar título: {e}")
+                sys.stdout.flush()
 
     except Exception as e:
         logger.error(f"[RAG Service] Erro na geração LLM após {time.time() - step_start:.3f}s: {str(e)}")
@@ -307,4 +360,5 @@ def send_message_with_rag(
         "assistant_message": assistant_db_message,
         "sources": sources,
         "context_used": len(context_parts) > 0,
+        "title": generated_title,
     }

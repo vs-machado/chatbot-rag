@@ -40,6 +40,7 @@ export interface ChatRAGResponse {
   assistant_message: ChatMessageResponse
   sources: DocumentSource[]
   context_used: boolean
+  title?: string
 }
 
 // Request types
@@ -141,7 +142,7 @@ export const sendMessageWithRAG = async (
   sessionId: string,
   content: string,
   topK: number = 5
-): Promise<{ message: Message; sources: DocumentSource[]; contextUsed: boolean }> => {
+): Promise<{ message: Message; sources: DocumentSource[]; contextUsed: boolean; title?: string }> => {
   const endTimer = createRequestTimer(`/api/v1/chat/sessions/${sessionId}/rag`, 'POST')
   chatLogger.info('Enviando mensagem com RAG', { sessionId, contentLength: content.length, topK })
   const startTime = performance.now()
@@ -161,7 +162,8 @@ export const sendMessageWithRAG = async (
       sessionId,
       duration,
       sourcesCount: response.data.sources.length,
-      contextUsed: response.data.context_used
+      contextUsed: response.data.context_used,
+      title: response.data.title
     })
 
     const assistantMessage = toMessage(response.data.assistant_message)
@@ -170,6 +172,7 @@ export const sendMessageWithRAG = async (
       message: assistantMessage,
       sources: response.data.sources,
       contextUsed: response.data.context_used,
+      title: response.data.title,
     }
   } catch (error) {
     const duration = Math.round(performance.now() - startTime)
