@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChatSession, Message } from '../types/types'
 import {
   createChatSession,
+  getChatSession,
   listChatSessions,
   sendMessageWithRAG,
 } from '../services/chatService'
@@ -42,6 +43,18 @@ export const useChat = (): UseChatReturn => {
         if (backendSessions.length > 0) {
           setSessions(backendSessions)
           setActiveSessionId(backendSessions[0].id)
+
+          // Carrega mensagens da primeira sessão automaticamente
+          try {
+            const sessionWithMessages = await getChatSession(backendSessions[0].id)
+            setSessions((currentSessions) =>
+              currentSessions.map((s) =>
+                s.id === backendSessions[0].id ? sessionWithMessages : s
+              )
+            )
+          } catch (err) {
+            console.error('Erro ao carregar mensagens da sessão inicial:', err)
+          }
         }
         setIsInitialized(true)
       } catch (err) {
@@ -60,10 +73,33 @@ export const useChat = (): UseChatReturn => {
 
   const activeMessages = activeSession?.messages ?? []
 
-  const handleSelectSession = useCallback((sessionId: string) => {
+  const handleSelectSession = useCallback(async (sessionId: string) => {
     setActiveSessionId(sessionId)
     setError(null)
-  }, [])
+
+    // Busca mensagens da sessão se ainda não estiverem carregadas
+    const session = sessions.find((s) => s.id === sessionId)
+    if (session && session.messages.length === 0) {
+      try {
+        setIsLoading(true)
+        const sessionWithMessages = await getChatSession(sessionId)
+        setSessions((currentSessions) =>
+          currentSessions.map((s) =>
+            s.id === sessionId ? sessionWithMessages : s
+          )
+        )
+      } catch (err) {
+        console.error('Erro ao carregar mensagens da sessão:', err)
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Erro ao carregar mensagens. Tente novamente.'
+        )
+      } finally {
+        setIsLoading(false)
+      }
+    }
+  }, [sessions])
 
   const handleNewChat = useCallback(async () => {
     setIsLoading(true)
