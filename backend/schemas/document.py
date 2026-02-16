@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class APIKeyConfig(BaseModel):
@@ -57,10 +57,27 @@ class DocumentResponse(BaseModel):
     id: UUID
     title: str
     content: str
-    metadata_: Optional[str] = Field(None, alias="metadata")
-    has_embedding: bool = Field(..., description="Se o documento tem embedding gerado")
+    metadata_: Optional[str] = Field(None, alias="metadata_")
+    has_embedding: Optional[bool] = Field(None, description="Se o documento tem embedding gerado")
     created_at: datetime
     updated_at: datetime
+
+    @field_validator("metadata_", mode="before")
+    @classmethod
+    def validate_metadata(cls, v):
+        """Valida o campo metadata_, extraindo do SQLAlchemy corretamente."""
+        # Se for o objeto MetaData do SQLAlchemy, retorna None
+        if hasattr(v, 'tables'):
+            return None
+        return v
+
+    @field_validator("has_embedding", mode="before")
+    @classmethod
+    def validate_has_embedding(cls, v):
+        """Valida o campo has_embedding."""
+        if v is None:
+            return False
+        return bool(v)
 
 
 class DocumentListResponse(BaseModel):

@@ -23,9 +23,14 @@ class Document(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    @property
+    def has_embedding(self) -> bool:
+        """Retorna True se o documento tem embedding gerado."""
+        return self.embedding is not None
+
     def __repr__(self):
         """Retorna representação string do documento."""
-        return f"<Document(id={self.id}, title='{self.title}')>"
+        return f"<Document(id={self.id}, title='{self.title}'>"
 
 
 class ChatSession(Base):

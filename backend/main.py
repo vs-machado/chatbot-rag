@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
+from config import EMBEDDING_MODEL, EMBEDDING_PROVIDER
 from database import Base, engine
 from routers import chat, documents
 
@@ -22,6 +23,14 @@ async def lifespan(app: FastAPI):
         conn.commit()
     Base.metadata.create_all(bind=engine)
     print("Tabelas criadas/verificadas com sucesso")
+
+    # Pré-carrega o modelo de embeddings para evitar delay na primeira requisição
+    if EMBEDDING_PROVIDER == "sentence_transformers":
+        print(f"Pré-carregando modelo de embeddings: {EMBEDDING_MODEL}")
+        from services.embedding_service import _get_local_model
+        _get_local_model(EMBEDDING_MODEL)
+        print("Modelo de embeddings carregado com sucesso")
+
     yield
     # Cleanup (se necessário)
     pass
