@@ -1,5 +1,8 @@
 """Controllers para gerenciamento de chat."""
 
+import logging
+import sys
+import time
 import uuid
 from typing import Optional
 
@@ -20,6 +23,8 @@ from schemas.chat import (
     SendMessageRequest,
 )
 from services import chat_service
+
+logger = logging.getLogger(__name__)
 
 
 def create_session_controller(
@@ -237,6 +242,10 @@ def send_message_with_rag_controller(
     session_id: uuid.UUID, request: ChatRAGRequest, db: Session
 ) -> ChatRAGResponse:
     """Controller para enviar mensagem com RAG (busca em documentos + LLM)."""
+    start_time = time.time()
+    logger.info(f"[RAG] Iniciando processamento - session_id: {session_id}")
+    sys.stdout.flush()
+
     try:
         result = chat_service.send_message_with_rag(
             db=db,
@@ -245,6 +254,10 @@ def send_message_with_rag_controller(
             model_config=request.model_config_,
             top_k=request.top_k,
         )
+
+        duration = time.time() - start_time
+        logger.info(f"[RAG] Concluído em {duration:.2f}s - session_id: {session_id}")
+        sys.stdout.flush()
 
         user_msg = result["user_message"]
         assistant_msg = result["assistant_message"]
@@ -270,8 +283,14 @@ def send_message_with_rag_controller(
             context_used=result["context_used"],
         )
     except ValueError as e:
+        duration = time.time() - start_time
+        logger.error(f"[RAG] Erro após {duration:.2f}s - session_id: {session_id}: {str(e)}")
+        sys.stdout.flush()
         raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"[RAG] Erro após {duration:.2f}s - session_id: {session_id}: {str(e)}")
+        sys.stdout.flush()
         raise HTTPException(
             status_code=500, detail=f"Erro ao processar mensagem com RAG: {str(e)}"
         ) from e

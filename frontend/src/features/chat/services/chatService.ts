@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { api } from '@/services/api'
 import type { Message, ChatSession } from '../types/types'
+import { chatLogger, createRequestTimer } from '@/lib/logger'
 
 // Tipos da API backend
 export interface ChatSessionResponse {
@@ -68,15 +69,21 @@ const toChatSession = (apiSession: ChatSessionResponse, messages: Message[] = []
 
 // Cria uma nova sessão de chat
 export const createChatSession = async (title?: string): Promise<ChatSession> => {
+  const endTimer = createRequestTimer('/api/v1/chat/sessions', 'POST')
+  chatLogger.info('Iniciando criação de sessão', { title })
+
   try {
     const response = await api.post<ChatSessionResponse>('/api/v1/chat/sessions', {
       title: title || 'Nova Conversa',
     })
 
+    endTimer()
+    chatLogger.info('Sessão criada com sucesso', { sessionId: response.data.id })
     return toChatSession(response.data)
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const message = error.response?.data?.detail || error.message
+      chatLogger.error('Erro ao criar sessão', { error: message })
       throw new Error(`Erro ao criar sessão: ${message}`)
     }
     throw error
@@ -85,13 +92,19 @@ export const createChatSession = async (title?: string): Promise<ChatSession> =>
 
 // Lista todas as sessões de chat
 export const listChatSessions = async (): Promise<ChatSession[]> => {
+  const endTimer = createRequestTimer('/api/v1/chat/sessions', 'GET')
+  chatLogger.info('Listando sessões de chat')
+
   try {
     const response = await api.get<ChatSessionListResponse>('/api/v1/chat/sessions')
 
+    endTimer()
+    chatLogger.info('Sessões listadas com sucesso', { count: response.data.sessions.length })
     return response.data.sessions.map(session => toChatSession(session))
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const message = error.response?.data?.detail || error.message
+      chatLogger.error('Erro ao listar sessões', { error: message })
       throw new Error(`Erro ao listar sessões: ${message}`)
     }
     throw error
@@ -100,17 +113,23 @@ export const listChatSessions = async (): Promise<ChatSession[]> => {
 
 // Obtém detalhes de uma sessão com mensagens
 export const getChatSession = async (sessionId: string): Promise<ChatSession> => {
+  const endTimer = createRequestTimer(`/api/v1/chat/sessions/${sessionId}`, 'GET')
+  chatLogger.info('Obtendo detalhes da sessão', { sessionId })
+
   try {
     const response = await api.get<ChatSessionResponse & { messages: ChatMessageResponse[] }>(
       `/api/v1/chat/sessions/${sessionId}`
     )
 
+    endTimer()
+    chatLogger.info('Detalhes da sessão obtidos', { sessionId, messageCount: response.data.messages?.length || 0 })
     const messages = response.data.messages?.map(toMessage) || []
 
     return toChatSession(response.data, messages)
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const message = error.response?.data?.detail || error.message
+      chatLogger.error('Erro ao obter sessão', { sessionId, error: message })
       throw new Error(`Erro ao obter sessão: ${message}`)
     }
     throw error
@@ -123,6 +142,10 @@ export const sendMessageWithRAG = async (
   content: string,
   topK: number = 5
 ): Promise<{ message: Message; sources: DocumentSource[]; contextUsed: boolean }> => {
+  const endTimer = createRequestTimer(`/api/v1/chat/sessions/${sessionId}/rag`, 'POST')
+  chatLogger.info('Enviando mensagem com RAG', { sessionId, contentLength: content.length, topK })
+  const startTime = performance.now()
+
   try {
     const response = await api.post<ChatRAGResponse>(
       `/api/v1/chat/sessions/${sessionId}/rag`,
@@ -132,6 +155,15 @@ export const sendMessageWithRAG = async (
       }
     )
 
+    const duration = Math.round(performance.now() - startTime)
+    endTimer()
+    chatLogger.info('Mensagem enviada com sucesso', {
+      sessionId,
+      duration,
+      sourcesCount: response.data.sources.length,
+      contextUsed: response.data.context_used
+    })
+
     const assistantMessage = toMessage(response.data.assistant_message)
 
     return {
@@ -140,10 +172,13 @@ export const sendMessageWithRAG = async (
       contextUsed: response.data.context_used,
     }
   } catch (error) {
+    const duration = Math.round(performance.now() - startTime)
     if (axios.isAxiosError(error)) {
       const message = error.response?.data?.detail || error.message
+      chatLogger.error('Erro ao enviar mensagem', { sessionId, duration, error: message })
       throw new Error(`Erro ao enviar mensagem: ${message}`)
     }
+    chatLogger.error('Erro ao enviar mensagem', { sessionId, duration, error })
     throw error
   }
 }

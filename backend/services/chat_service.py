@@ -1,3 +1,6 @@
+import logging
+import sys
+import time
 import uuid
 from datetime import datetime
 from typing import Optional
@@ -11,6 +14,8 @@ from schemas.chat import ChatSessionCreate, ChatSessionUpdate, SendMessageReques
 from schemas.document import ModelConfig
 from services.document_service import search_documents
 from services.llm_service import get_llm
+
+logger = logging.getLogger(__name__)
 
 # ID de usuário padrão temporário
 DEFAULT_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
@@ -173,26 +178,39 @@ def send_message_with_rag(
     Returns:
         Dicionário com user_message, assistant_response, e documentos usados
     """
+    logger.info(f"[RAG Service] Iniciando processamento para session_id: {session_id}")
+    sys.stdout.flush()
+
     # Verifica se a sessão existe
+    step_start = time.time()
     db_session = get_session(db, session_id)
     if not db_session:
         raise ValueError("Sessão não encontrada")
+    logger.info(f"[RAG Service] Verificação de sessão: {time.time() - step_start:.3f}s")
+    sys.stdout.flush()
 
     # 1. Salva mensagem do usuário no banco
+    step_start = time.time()
     user_msg_data = SendMessageRequest(content=user_message, role="user")
     user_db_message = add_message(db, session_id, user_msg_data)
     if not user_db_message:
         raise ValueError("Erro ao salvar mensagem do usuário")
+    logger.info(f"[RAG Service] Salvamento mensagem usuário: {time.time() - step_start:.3f}s")
+    sys.stdout.flush()
 
     # 2. Busca documentos similares
+    step_start = time.time()
     search_results = search_documents(
         db=db,
         query=user_message,
         top_k=top_k,
         model_config=model_config,
     )
+    logger.info(f"[RAG Service] Busca de documentos: {time.time() - step_start:.3f}s (encontrados: {len(search_results)})")
+    sys.stdout.flush()
 
     # 3. Extrai contexto dos documentos encontrados
+    step_start = time.time()
     context_parts = []
     sources = []
     for result in search_results:
@@ -208,6 +226,8 @@ def send_message_with_rag(
         )
 
     context = "\n\n".join(context_parts) if context_parts else "Nenhum documento relevante encontrado."
+    logger.info(f"[RAG Service] Extração de contexto: {time.time() - step_start:.3f}s")
+    sys.stdout.flush()
 
     # 4. Constrói prompt RAG
     prompt_template = ChatPromptTemplate.from_messages(
@@ -226,7 +246,10 @@ def send_message_with_rag(
     )
 
     # 5. Gera resposta com LLM
+    step_start = time.time()
     try:
+        logger.info(f"[RAG Service] Iniciando geração LLM...")
+        sys.stdout.flush()
         llm = get_llm(
             provider=model_config.provider if model_config else None,
             model=model_config.model if model_config else None,
@@ -257,10 +280,16 @@ def send_message_with_rag(
         else:
             assistant_content = str(raw_content)
 
+        logger.info(f"[RAG Service] Geração LLM: {time.time() - step_start:.3f}s")
+        sys.stdout.flush()
+
     except Exception as e:
+        logger.error(f"[RAG Service] Erro na geração LLM após {time.time() - step_start:.3f}s: {str(e)}")
+        sys.stdout.flush()
         assistant_content = f"Erro ao gerar resposta: {str(e)}"
 
     # 6. Salva resposta do assistente no banco
+    step_start = time.time()
     assistant_msg_data = SendMessageRequest(
         content=assistant_content,
         role="assistant",
@@ -270,6 +299,8 @@ def send_message_with_rag(
         },
     )
     assistant_db_message = add_message(db, session_id, assistant_msg_data)
+    logger.info(f"[RAG Service] Salvamento mensagem assistente: {time.time() - step_start:.3f}s")
+    sys.stdout.flush()
 
     return {
         "user_message": user_db_message,

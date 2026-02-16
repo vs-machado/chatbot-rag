@@ -1,3 +1,5 @@
+import logging
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -7,6 +9,16 @@ from sqlalchemy import text
 from config import EMBEDDING_MODEL, EMBEDDING_PROVIDER
 from database import Base, engine
 from routers import chat, documents
+
+# Configuração de logging para mostrar logs em tempo real no Docker
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
 
 
 # Lifespan para inicialização e cleanup
@@ -22,14 +34,14 @@ async def lifespan(app: FastAPI):
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         conn.commit()
     Base.metadata.create_all(bind=engine)
-    print("Tabelas criadas/verificadas com sucesso")
+    logger.info("Tabelas criadas/verificadas com sucesso")
 
     # Pré-carrega o modelo de embeddings para evitar delay na primeira requisição
     if EMBEDDING_PROVIDER == "sentence_transformers":
-        print(f"Pré-carregando modelo de embeddings: {EMBEDDING_MODEL}")
+        logger.info(f"Pré-carregando modelo de embeddings: {EMBEDDING_MODEL}")
         from services.embedding_service import _get_local_model
         _get_local_model(EMBEDDING_MODEL)
-        print("Modelo de embeddings carregado com sucesso")
+        logger.info("Modelo de embeddings carregado com sucesso")
 
     yield
     # Cleanup (se necessário)

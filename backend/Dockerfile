@@ -1,6 +1,9 @@
 # Backend Dockerfile
 FROM python:3.12-slim
 
+# Evita buffer de output do Python (mostra logs em tempo real)
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
 # Instala dependências do sistema para psycopg2 e torch
@@ -22,4 +25,6 @@ COPY . .
 EXPOSE 8000
 
 # Comando padrão para desenvolvimento
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# --access-log: mostra logs de requisições HTTP
+# --log-level debug: mostra logs detalhados
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--access-log", "--log-level", "debug"]
