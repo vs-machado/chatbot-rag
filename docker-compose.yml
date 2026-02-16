@@ -25,6 +25,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: development
     container_name: chatbot-rag-backend
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-chatbot}:${POSTGRES_PASSWORD:-chatbot123}@db:5432/${POSTGRES_DB:-chatbot_rag}
@@ -56,3 +57,5 @@ services:
 
 volumes:
   postgres_data:
+  # Volume para cache de pacotes Python do backend
+  backend_site_packages:
