@@ -53,8 +53,19 @@ def get_llm(
                 "Google API key não configurada. Forneça via parâmetro ou variável GOOGLE_API_KEY."
             )
 
+        # Configuração de thinking para Gemini 3 - reduz esforço de raciocínio para melhorar velocidade
+        thinking_config = {"thinking_level": "LOW"} if "gemini-3" in model else None
+
+        # Timeout para evitar esperas muito longas (90 segundos)
+        timeout = kwargs.pop("timeout", 90)
+
         return ChatGoogleGenerativeAI(
-            model=model, google_api_key=api_key, temperature=temperature, **kwargs
+            model=model,
+            google_api_key=api_key,
+            temperature=temperature,
+            thinking_config=thinking_config,
+            timeout=timeout,
+            **kwargs
         )
 
     elif provider == "openai":
