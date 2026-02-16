@@ -43,7 +43,9 @@ export const useChat = (): UseChatReturn => {
       try {
         const backendSessions = await listChatSessions()
         if (backendSessions.length > 0) {
-          setSessions(backendSessions)
+          // Marca todas as sessões carregadas como persistidas
+          const persistedSessions = backendSessions.map(s => ({ ...s, _isPersisted: true }))
+          setSessions(persistedSessions)
           setActiveSessionId(backendSessions[0].id)
 
           // Carrega mensagens da primeira sessão automaticamente
@@ -51,7 +53,7 @@ export const useChat = (): UseChatReturn => {
             const sessionWithMessages = await getChatSession(backendSessions[0].id)
             setSessions((currentSessions) =>
               currentSessions.map((s) =>
-                s.id === backendSessions[0].id ? sessionWithMessages : s
+                s.id === backendSessions[0].id ? { ...sessionWithMessages, _isPersisted: true } : s
               )
             )
           } catch (err) {
@@ -85,9 +87,11 @@ export const useChat = (): UseChatReturn => {
       try {
         setIsLoading(true)
         const sessionWithMessages = await getChatSession(sessionId)
+        // Marca como persistida ao carregar do backend
+        const persistedSession = { ...sessionWithMessages, _isPersisted: true }
         setSessions((currentSessions) =>
           currentSessions.map((s) =>
-            s.id === sessionId ? sessionWithMessages : s
+            s.id === sessionId ? persistedSession : s
           )
         )
       } catch (err) {
@@ -104,43 +108,34 @@ export const useChat = (): UseChatReturn => {
   }, [sessions])
 
   const handleNewChat = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      // Cria sessão no backend
-      const now = new Date()
-      const backendSession = await createChatSession(NEW_CHAT_TITLE)
-
-      // Adiciona mensagem de boas-vindas localmente
-      const newSession: ChatSession = {
-        ...backendSession,
-        messages: [
-          {
-            id: createLocalId(),
-            role: NEW_CHAT_WELCOME_MESSAGE.role,
-            content: NEW_CHAT_WELCOME_MESSAGE.content,
-            timestamp: now,
-          },
-        ],
-      }
-
-      setSessions((currentSessions) => [newSession, ...currentSessions])
-      setActiveSessionId(newSession.id)
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Erro ao criar nova conversa. Tente novamente.'
-      )
-    } finally {
-      setIsLoading(false)
+    // Cria sessão localmente (sem salvar no backend ainda)
+    const now = new Date()
+    const newSession: ChatSession = {
+      id: createLocalId(),
+      title: NEW_CHAT_TITLE,
+      date: now,
+      messages: [
+        {
+          id: createLocalId(),
+          role: NEW_CHAT_WELCOME_MESSAGE.role,
+          content: NEW_CHAT_WELCOME_MESSAGE.content,
+          timestamp: now,
+        },
+      ],
+      _isPersisted: false, // Marca como não persistida
     }
+
+    setSessions((currentSessions) => [newSession, ...currentSessions])
+    setActiveSessionId(newSession.id)
+    setError(null)
   }, [])
 
   const handleSendMessage = useCallback(
     async (content: string) => {
       if (!isInitialized || !activeSessionId || isLoading) return
+
+      const session = sessions.find((s) => s.id === activeSessionId)
+      if (!session) return
 
       const now = new Date()
       const userMessage: Message = {
@@ -152,10 +147,10 @@ export const useChat = (): UseChatReturn => {
 
       // Adiciona mensagem do usuário localmente
       setSessions((currentSessions) =>
-        currentSessions.map((session) =>
-          session.id === activeSessionId
-            ? { ...session, messages: [...session.messages, userMessage] }
-            : session
+        currentSessions.map((s) =>
+          s.id === activeSessionId
+            ? { ...s, messages: [...s.messages, userMessage] }
+            : s
         )
       )
 
@@ -163,8 +158,26 @@ export const useChat = (): UseChatReturn => {
       setError(null)
 
       try {
+        let backendSessionId = activeSessionId
+
+        // Se a sessão ainda não foi persistida, cria no backend primeiro
+        if (!session._isPersisted) {
+          const backendSession = await createChatSession(session.title)
+          backendSessionId = backendSession.id
+
+          // Atualiza o ID da sessão local para o ID do backend
+          setSessions((currentSessions) =>
+            currentSessions.map((s) =>
+              s.id === activeSessionId
+                ? { ...s, id: backendSession.id, _isPersisted: true }
+                : s
+            )
+          )
+          setActiveSessionId(backendSession.id)
+        }
+
         // Envia mensagem via RAG
-        const result = await sendMessageWithRAG(activeSessionId, content, 5)
+        const result = await sendMessageWithRAG(backendSessionId, content, 5)
 
         const assistantMessage: Message = {
           id: result.message.id,
@@ -175,10 +188,10 @@ export const useChat = (): UseChatReturn => {
 
         // Adiciona resposta do assistente
         setSessions((currentSessions) =>
-          currentSessions.map((session) =>
-            session.id === activeSessionId
-              ? { ...session, messages: [...session.messages, assistantMessage] }
-              : session
+          currentSessions.map((s) =>
+            s.id === backendSessionId
+              ? { ...s, messages: [...s.messages, assistantMessage] }
+              : s
           )
         )
 
@@ -196,12 +209,17 @@ export const useChat = (): UseChatReturn => {
         setIsLoading(false)
       }
     },
-    [isInitialized, activeSessionId, isLoading]
+    [isInitialized, activeSessionId, isLoading, sessions]
   )
 
   const handleDeleteSession = useCallback(async (sessionId: string) => {
+    const session = sessions.find((s) => s.id === sessionId)
+
     try {
-      await deleteChatSession(sessionId)
+      // Só chama a API se a sessão estiver persistida no backend
+      if (session?._isPersisted !== false) {
+        await deleteChatSession(sessionId)
+      }
 
       // Remove a sessão do estado local
       setSessions((currentSessions) => {
@@ -226,7 +244,7 @@ export const useChat = (): UseChatReturn => {
           : 'Erro ao deletar sessão. Tente novamente.'
       )
     }
-  }, [activeSessionId])
+  }, [activeSessionId, sessions])
 
   return {
     sessions,

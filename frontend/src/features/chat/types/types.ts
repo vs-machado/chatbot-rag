@@ -10,4 +10,5 @@ export interface ChatSession {
   title: string
   date: Date
   messages: Message[]
+  _isPersisted?: boolean // Flag para indicar se a sessão já foi salva no backend
 }
