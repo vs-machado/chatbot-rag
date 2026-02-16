@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChatSession, Message } from '../types/types'
 import {
   createChatSession,
+  deleteChatSession,
   getChatSession,
   listChatSessions,
   sendMessageWithRAG,
@@ -26,6 +27,7 @@ export interface UseChatReturn {
   handleSelectSession: (sessionId: string) => void
   handleNewChat: () => Promise<void>
   handleSendMessage: (content: string) => Promise<void>
+  handleDeleteSession: (sessionId: string) => Promise<void>
 }
 
 export const useChat = (): UseChatReturn => {
@@ -197,6 +199,35 @@ export const useChat = (): UseChatReturn => {
     [isInitialized, activeSessionId, isLoading]
   )
 
+  const handleDeleteSession = useCallback(async (sessionId: string) => {
+    try {
+      await deleteChatSession(sessionId)
+
+      // Remove a sessão do estado local
+      setSessions((currentSessions) => {
+        const updatedSessions = currentSessions.filter((s) => s.id !== sessionId)
+
+        // Se a sessão deletada era a ativa, seleciona outra ou limpa
+        if (activeSessionId === sessionId) {
+          if (updatedSessions.length > 0) {
+            setActiveSessionId(updatedSessions[0].id)
+          } else {
+            setActiveSessionId('')
+          }
+        }
+
+        return updatedSessions
+      })
+    } catch (err) {
+      console.error('Erro ao deletar sessão:', err)
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Erro ao deletar sessão. Tente novamente.'
+      )
+    }
+  }, [activeSessionId])
+
   return {
     sessions,
     activeSessionId,
@@ -208,5 +239,6 @@ export const useChat = (): UseChatReturn => {
     handleSelectSession,
     handleNewChat,
     handleSendMessage,
+    handleDeleteSession,
   }
 }

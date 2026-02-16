@@ -20,6 +20,7 @@ export function Chat() {
     handleSelectSession,
     handleNewChat,
     handleSendMessage,
+    handleDeleteSession,
   } = useChat();
 
   // Ref para o container de mensagens para auto-scroll
@@ -38,6 +39,7 @@ export function Chat() {
         activeSessionId={activeSessionId}
         onNewChat={handleNewChat}
         onSelectSession={handleSelectSession}
+        onDeleteSession={handleDeleteSession}
       />
 
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
