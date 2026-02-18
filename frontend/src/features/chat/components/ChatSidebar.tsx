@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, MessageSquare, FileUp, Settings, Trash2 } from "lucide-react";
+import { Plus, FileUp, Settings, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -101,7 +101,7 @@ export function ChatSidebar({
     <>
       <aside
         className={cn(
-          "w-[280px] flex-shrink-0 bg-background border-r flex flex-col h-full transition-all duration-300",
+          "w-70 shrink-0 bg-background border-r flex flex-col h-full transition-all duration-300",
           className
         )}
       >
@@ -133,27 +133,27 @@ export function ChatSidebar({
                       <div
                         key={session.id}
                         className={cn(
-                          "flex items-center w-full group rounded-md",
-                          isActive && "bg-primary/10"
+                          "flex items-center w-full group rounded-md min-w-0",
+                          isActive ? "bg-primary/10" : "hover:bg-accent"
                         )}
                       >
                         <Button
                           variant="ghost"
                           className={cn(
-                            "flex-1 justify-start px-3 py-2 h-auto font-normal",
+                            "flex-1 justify-start px-3 py-2 h-auto font-normal min-w-0",
                             isActive
-                              ? "text-primary hover:bg-transparent hover:text-primary"
-                              : "text-muted-foreground hover:bg-transparent"
+                              ? "text-primary hover:text-primary hover:bg-transparent"
+                              : "text-muted-foreground hover:text-accent-foreground"
                           )}
                           onClick={() => onSelectSession(session.id)}
                         >
-                          <MessageSquare className="h-4 w-4 mr-3 opacity-70" />
-                          <span className="truncate flex-1 text-left">{session.title}</span>
+                          {/* <MessageSquare className="h-4 w-4 mr-3 opacity-70 shrink-0" /> */}
+                          <span className="truncate">{session.title}</span>
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10 mr-1"
+                          className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-transparent"
                           onClick={(e) => handleDeleteClick(e, session.id)}
                         >
                           <Trash2 className="h-4 w-4" />
