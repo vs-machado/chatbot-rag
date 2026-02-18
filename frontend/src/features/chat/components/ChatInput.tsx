@@ -53,7 +53,7 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
            <textarea
               ref={textareaRef}
               className="w-full bg-transparent border-none py-3 text-[15px] leading-relaxed text-foreground placeholder-muted-foreground focus:ring-0 focus-visible:outline-none resize-none max-h-48 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              placeholder="Message ChatGPT..."
+              placeholder="Message RAG Assistant..."
               rows={1}
               style={{ minHeight: "48px" }}
               value={message}
@@ -71,7 +71,7 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
            </Button>
         </div>
         <p className="text-center text-xs text-muted-foreground mt-3 font-light">
-          ChatGPT can make mistakes. Consider checking important information.
+          RAG Assistant can make mistakes. Consider checking important information.
         </p>
       </div>
     </form>
