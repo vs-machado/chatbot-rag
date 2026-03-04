@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, FileUp, Settings, Trash2 } from "lucide-react";
+import { Plus, Settings, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -166,16 +166,6 @@ export function ChatSidebar({
             ))}
           </div>
         </ScrollArea>
-
-        <div className="px-4 pb-2 mt-auto">
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-3 px-4 py-2 bg-muted/50 border-border hover:bg-muted shadow-sm"
-          >
-            <FileUp className="h-4 w-4 text-primary" />
-            <span>Add documents</span>
-          </Button>
-        </div>
 
         <div className="p-4 border-t space-y-2">
           <Button

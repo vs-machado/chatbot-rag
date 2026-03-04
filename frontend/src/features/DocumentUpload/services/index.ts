@@ -1,1 +1,1 @@
-export { uploadDocument } from './documentService'
+export { uploadDocument, processTempDocument } from './documentService'

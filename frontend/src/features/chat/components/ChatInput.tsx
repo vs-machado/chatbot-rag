@@ -1,13 +1,25 @@
 import { useState, useRef, type FormEvent, type KeyboardEvent } from 'react';
-import { Paperclip, ArrowUp } from 'lucide-react';
+import { Paperclip, ArrowUp, X, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void
   isLoading?: boolean
+  attachedDocuments?: Array<{ content: string; filename: string }>
+  onClearAttachedDocuments?: () => void
+  onRemoveAttachedDocument?: (index: number) => void
+  onOpenDocumentUpload?: () => void
 }
 
-export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
+export function ChatInput({ 
+  onSendMessage, 
+  isLoading, 
+  attachedDocuments = [], 
+  onClearAttachedDocuments,
+  onRemoveAttachedDocument,
+  onOpenDocumentUpload,
+}: ChatInputProps) {
   const [message, setMessage] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -38,15 +50,59 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full bg-gradient-to-t from-background via-background to-transparent pt-10 pb-6 px-4">
+    <form onSubmit={handleSubmit} className="w-full bg-linear-to-t from-background via-background to-transparent pt-10 pb-6 px-4">
       <div className="max-w-4xl mx-auto">
+        {/* Documentos anexados */}
+        {attachedDocuments.length > 0 && (
+          <div className="mb-2 space-y-1">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs text-muted-foreground">
+                {attachedDocuments.length} file(s) attached
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs"
+                onClick={onClearAttachedDocuments}
+              >
+                Clear all
+              </Button>
+            </div>
+            <ScrollArea className="h-20 border rounded-lg p-2 bg-muted/30">
+              <div className="space-y-1">
+                {attachedDocuments.map((doc, index) => (
+                  <div
+                    key={`${doc.filename}-${index}`}
+                    className="flex items-center gap-2 p-1.5 bg-background rounded border"
+                  >
+                    <FileText className="h-3 w-3 text-primary shrink-0" />
+                    <span className="text-xs text-muted-foreground truncate flex-1">
+                      {doc.filename}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 shrink-0"
+                      onClick={() => onRemoveAttachedDocument?.(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
         <div className="relative bg-background rounded-xl border shadow-xl shadow-muted/20 focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary transition-all flex items-end p-2 gap-2">
            <Button
              type="button"
              variant="ghost"
              size="icon"
-             className="text-muted-foreground hover:text-foreground flex-shrink-0 mb-1"
+             className="text-muted-foreground hover:text-foreground shrink-0 mb-1"
              title="Attach files"
+             onClick={onOpenDocumentUpload}
            >
              <Paperclip className="h-5 w-5" />
            </Button>
@@ -63,7 +119,7 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
             />
            <Button
              type="submit"
-             className="rounded-lg shadow-md mb-1 h-9 w-9 p-0 flex-shrink-0"
+             className="rounded-lg shadow-md mb-1 h-9 w-9 p-0 shrink-0"
              size="icon"
              disabled={!message.trim() || isLoading}
            >

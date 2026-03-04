@@ -1,15 +1,18 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ChatHeader } from "./components/ChatHeader";
 import { ChatInput } from "./components/ChatInput";
 import { ChatMessage } from "./components/ChatMessage";
 import { ChatSidebar } from "./components/ChatSidebar";
+import { DocumentUploadDialog } from "./components/DocumentUploadDialog";
 import { useChat } from "./hooks/useChat";
 import { NEW_CHAT_TITLE } from "./constants";
 import { formatTime } from "@/lib/time";
 
 export function Chat() {
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+
   const {
     sessions,
     activeSessionId,
@@ -17,10 +20,14 @@ export function Chat() {
     activeMessages,
     isLoading,
     error,
+    attachedDocuments,
     handleSelectSession,
     handleNewChat,
     handleSendMessage,
     handleDeleteSession,
+    handleAttachDocuments,
+    handleClearAttachedDocuments,
+    handleRemoveAttachedDocument,
   } = useChat();
 
   // Ref para o container de mensagens para auto-scroll
@@ -76,13 +83,23 @@ export function Chat() {
         </ScrollArea>
         </div>
 
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <ChatInput
             onSendMessage={handleSendMessage}
             isLoading={isLoading}
+            attachedDocuments={attachedDocuments}
+            onClearAttachedDocuments={handleClearAttachedDocuments}
+            onRemoveAttachedDocument={handleRemoveAttachedDocument}
+            onOpenDocumentUpload={() => setUploadDialogOpen(true)}
           />
         </div>
       </main>
+
+      <DocumentUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onDocumentsProcessed={handleAttachDocuments}
+      />
     </div>
   );
 }

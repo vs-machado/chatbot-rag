@@ -24,10 +24,14 @@ export interface UseChatReturn {
   isLoading: boolean
   isInitialized: boolean
   error: string | null
+  attachedDocuments: Array<{ content: string; filename: string }>
   handleSelectSession: (sessionId: string) => void
   handleNewChat: () => Promise<void>
   handleSendMessage: (content: string) => Promise<void>
   handleDeleteSession: (sessionId: string) => Promise<void>
+  handleAttachDocuments: (documents: Array<{ content: string; filename: string }>) => void
+  handleClearAttachedDocuments: () => void
+  handleRemoveAttachedDocument: (index: number) => void
 }
 
 export const useChat = (): UseChatReturn => {
@@ -36,6 +40,7 @@ export const useChat = (): UseChatReturn => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [attachedDocuments, setAttachedDocuments] = useState<Array<{ content: string; filename: string }>>([])
 
   // Carrega sessões do backend na inicialização
   useEffect(() => {
@@ -137,11 +142,22 @@ export const useChat = (): UseChatReturn => {
       const session = sessions.find((s) => s.id === activeSessionId)
       if (!session) return
 
+      // Monta o conteúdo da mensagem incluindo documentos anexados se houver
+      let fullContent = content
+      if (attachedDocuments.length > 0) {
+        const documentsContent = attachedDocuments
+          .map((doc) => `Arquivo: ${doc.filename}\n\n${doc.content}`)
+          .join('\n\n---\n\n')
+        fullContent = `Documentos anexados:\n\n${documentsContent}\n\n---\n\nPergunta: ${content}`
+      }
+
       const now = new Date()
       const userMessage: Message = {
         id: createLocalId(),
         role: 'user',
-        content,
+        content: attachedDocuments.length > 0 
+          ? `[${attachedDocuments.length} arquivo(s) anexado(s): ${attachedDocuments.map(d => d.filename).join(', ')}]\n\n${content}` 
+          : content,
         timestamp: now,
       }
 
@@ -176,8 +192,11 @@ export const useChat = (): UseChatReturn => {
           setActiveSessionId(backendSession.id)
         }
 
-        // Envia mensagem via RAG
-        const result = await sendMessageWithRAG(backendSessionId, content, 5)
+        // Envia mensagem via RAG (com conteúdo completo incluindo documentos)
+        const result = await sendMessageWithRAG(backendSessionId, fullContent, 5)
+
+        // Limpa documentos anexados após enviar
+        setAttachedDocuments([])
 
         const assistantMessage: Message = {
           id: result.message.id,
@@ -254,6 +273,18 @@ export const useChat = (): UseChatReturn => {
     }
   }, [activeSessionId, sessions])
 
+  const handleAttachDocuments = useCallback((documents: Array<{ content: string; filename: string }>) => {
+    setAttachedDocuments((prev) => [...prev, ...documents])
+  }, [])
+
+  const handleClearAttachedDocuments = useCallback(() => {
+    setAttachedDocuments([])
+  }, [])
+
+  const handleRemoveAttachedDocument = useCallback((index: number) => {
+    setAttachedDocuments((prev) => prev.filter((_, i) => i !== index))
+  }, [])
+
   return {
     sessions,
     activeSessionId,
@@ -262,9 +293,13 @@ export const useChat = (): UseChatReturn => {
     isLoading,
     isInitialized,
     error,
+    attachedDocuments,
     handleSelectSession,
     handleNewChat,
     handleSendMessage,
     handleDeleteSession,
+    handleAttachDocuments,
+    handleClearAttachedDocuments,
+    handleRemoveAttachedDocument,
   }
 }

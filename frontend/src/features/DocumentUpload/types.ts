@@ -14,6 +14,12 @@ export interface UploadResponse {
   document_ids?: string[]
 }
 
+export interface TempDocumentResponse {
+  filename: string
+  content: string
+  content_type: string
+}
+
 export interface UseDocumentUploadReturn {
   selectedFile: File | null
   uploadStatus: UploadStatus
