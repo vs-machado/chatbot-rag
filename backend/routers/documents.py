@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from controllers.documents import (
     delete_document_controller,
     list_documents_controller,
+    process_document_temporarily,
     search_documents_controller,
     upload_document_controller,
 )
@@ -65,3 +66,15 @@ def delete_document(document_id: uuid.UUID, db: Session = Depends(get_db)):
 def search_documents(request: DocumentSearchRequest, db: Session = Depends(get_db)):
     """Busca semântica nos documentos."""
     return search_documents_controller(request=request, db=db)
+
+
+@router.post("/process-temp")
+def process_temp_document(
+    file: UploadFile = File(...),
+):
+    """Processa um documento temporariamente sem persistir no banco.
+
+    Extrai o texto do arquivo e retorna para uso único na conversa.
+    Não gera embeddings nem salva no banco de dados.
+    """
+    return process_document_temporarily(file)

@@ -1,4 +1,4 @@
-import { DocumentUpload } from '@/features/DocumentUpload'
+import { DocumentUpload } from '@/features/DocumentUpload/DocumentUpload'
 
 export function DocumentUploadPage() {
   return (

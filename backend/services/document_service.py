@@ -14,8 +14,8 @@ from schemas.document import DocumentCreate, DocumentSearchResult, ModelConfig
 from services.embedding_service import generate_embedding
 
 
-def _read_file_content(file: UploadFile) -> str:
-    """Lê o conteúdo de um arquivo baseado no tipo MIME."""
+def extract_text_from_file(file: UploadFile) -> str:
+    """Extrai texto de um arquivo baseado no tipo MIME."""
     content = ""
     file.file.seek(0)
 
@@ -91,7 +91,7 @@ def process_and_create_documents_from_file(
     model_config: Optional[ModelConfig] = None,
 ) -> list[Document]:
     """Processa um arquivo, divide em chunks e cria documentos."""
-    text = _read_file_content(file)
+    text = extract_text_from_file(file)
     if not text.strip():
         raise HTTPException(status_code=400, detail="Arquivo vazio ou sem texto extraível")
 

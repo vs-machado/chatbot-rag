@@ -97,3 +97,23 @@ def search_documents_controller(
         raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro na busca: {str(e)}") from e
+
+
+def process_document_temporarily(file: UploadFile) -> dict:
+    """Controller para processar documento temporariamente.
+
+    Extrai o texto do arquivo sem persistir no banco de dados.
+    Usado para anexar arquivos a mensagens de chat sem salvar na base.
+    """
+    try:
+        content = document_service.extract_text_from_file(file)
+
+        return {
+            "filename": file.filename,
+            "content": content,
+            "content_type": file.content_type,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao processar arquivo: {str(e)}") from e
