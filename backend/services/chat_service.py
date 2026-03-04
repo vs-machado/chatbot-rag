@@ -9,6 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
+from config import LLM_TEMPERATURE, RAG_TOP_K
 from models import ChatMessage, ChatSession
 from schemas.chat import ChatSessionCreate, ChatSessionUpdate, SendMessageRequest
 from schemas.document import ModelConfig
@@ -161,7 +162,7 @@ def send_message_with_rag(
     session_id: uuid.UUID,
     user_message: str,
     model_config: Optional[ModelConfig] = None,
-    top_k: int = 5,
+    top_k: int = RAG_TOP_K,
 ) -> dict:
     """Processa mensagem do usuário usando RAG (Retrieval-Augmented Generation).
 
@@ -238,7 +239,7 @@ def send_message_with_rag(
             (
                 "system",
                 "Você é um assistente inteligente que responde perguntas baseado majoritariamente no contexto fornecido. "
-                "Se o contexto não contiver informações suficientes, diga que não encontrou informações relevantes e então forneça uma resposta baseada em seu conhecimento próprio. "
+                "Se o contexto não contiver informações suficientes, diga (INFO NOT FOUND ON DATABASE) e então forneça uma resposta baseada em seu conhecimento próprio. "
                 "Seja conciso e direto em suas respostas.",
             ),
             (
@@ -267,7 +268,7 @@ def send_message_with_rag(
                 if model_config and model_config.api_keys
                 else None
             ),
-            temperature=0.7,
+            temperature=LLM_TEMPERATURE,
         )
 
         chain = prompt_template | llm

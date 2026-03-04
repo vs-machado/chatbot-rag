@@ -8,6 +8,7 @@ from config import (
     GOOGLE_API_KEY,
     LLM_MODEL,
     LLM_PROVIDER,
+    LLM_TEMPERATURE,
     OPENAI_API_KEY,
     LLMProvider,
 )
@@ -18,7 +19,7 @@ def get_llm(
     model: Optional[str] = None,
     google_api_key: Optional[str] = None,
     openai_api_key: Optional[str] = None,
-    temperature: float = 0.7,
+    temperature: float = LLM_TEMPERATURE,
     **kwargs,
 ) -> BaseChatModel:
     """Retorna uma instância do LLM baseado no provedor especificado.

@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from config import RAG_TOP_K
 from schemas.document import ModelConfig
 
 
@@ -113,7 +114,7 @@ class ChatRAGRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     content: str = Field(..., min_length=1, description="Conteúdo da mensagem")
-    top_k: int = Field(5, ge=1, le=20, description="Número de documentos a recuperar")
+    top_k: int = Field(RAG_TOP_K, ge=1, le=20, description="Número de documentos a recuperar")
     model_config_: Optional[ModelConfig] = Field(
         None, alias="model_config", description="Configuração do modelo LLM"
     )

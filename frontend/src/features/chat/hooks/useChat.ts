@@ -193,7 +193,7 @@ export const useChat = (): UseChatReturn => {
         }
 
         // Envia mensagem via RAG (com conteúdo completo incluindo documentos)
-        const result = await sendMessageWithRAG(backendSessionId, fullContent, 5)
+        const result = await sendMessageWithRAG(backendSessionId, fullContent)
 
         // Limpa documentos anexados após enviar
         setAttachedDocuments([])

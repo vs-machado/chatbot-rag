@@ -50,7 +50,6 @@ export interface CreateSessionRequest {
 
 export interface SendRAGMessageRequest {
   content: string
-  top_k?: number
 }
 
 // Mappers: converte respostas da API para tipos do domínio do frontend
@@ -140,11 +139,10 @@ export const getChatSession = async (sessionId: string): Promise<ChatSession> =>
 // Envia mensagem usando RAG (Retrieval-Augmented Generation)
 export const sendMessageWithRAG = async (
   sessionId: string,
-  content: string,
-  topK: number = 5
+  content: string
 ): Promise<{ message: Message; sources: DocumentSource[]; contextUsed: boolean; title?: string }> => {
   const endTimer = createRequestTimer(`/api/v1/chat/sessions/${sessionId}/rag`, 'POST')
-  chatLogger.info('Enviando mensagem com RAG', { sessionId, contentLength: content.length, topK })
+  chatLogger.info('Enviando mensagem com RAG', { sessionId, contentLength: content.length })
   const startTime = performance.now()
 
   try {
@@ -152,7 +150,6 @@ export const sendMessageWithRAG = async (
       `/api/v1/chat/sessions/${sessionId}/rag`,
       {
         content,
-        top_k: topK,
       }
     )
 

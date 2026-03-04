@@ -180,6 +180,7 @@ def search_documents(
         model=model,
         google_api_key=api_key_google,
         openai_api_key=api_key_openai,
+        is_query=True,
     )
 
     # Busca usando pgvector (distância de cosseno <=> l2_distance se normalizado, mas pgvector tem operador específico)

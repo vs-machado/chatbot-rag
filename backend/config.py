@@ -36,6 +36,9 @@ EMBEDDING_DIMENSIONS = {
     "all-MiniLM-L6-v2": 384,
     "all-mpnet-base-v2": 768,
     "paraphrase-multilingual-MiniLM-L12-v2": 384,
+    "Qwen/Qwen3-Embedding-0.6B": 1024,
+    "Qwen/Qwen3-Embedding-4B": 2560,
+    "Qwen/Qwen3-Embedding-8B": 4096,
     # Google
     "models/text-embedding-004": 768,
     "models/embedding-001": 768,
@@ -46,11 +49,14 @@ EMBEDDING_DIMENSIONS = {
 }
 
 # Dimensão padrão baseada no modelo configurado
-EMBEDDING_DIMENSION = EMBEDDING_DIMENSIONS.get(EMBEDDING_MODEL, 384)
+EMBEDDING_DIMENSION = int(
+    os.getenv("EMBEDDING_DIMENSION", str(EMBEDDING_DIMENSIONS.get(EMBEDDING_MODEL, 384)))
+)
 
 # Configuração de LLM
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", LLMProvider.GOOGLE.value)
 LLM_MODEL = os.getenv("LLM_MODEL", "gemini-2.5-flash")
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.3"))
 
 # API Keys (podem ser sobrescritas por requisição)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
@@ -59,6 +65,9 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 # Configuração de chunking para documentos
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "200"))
+
+# Configuração padrão de recuperação no RAG
+RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
 
 # Diretório para upload temporário
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/chatbot_rag_uploads")
