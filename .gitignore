@@ -49,3 +49,7 @@ docker-compose.override.yml
 
 # Designs HTML samples
 html_samples
+
+# Playwright
+frontend/playwright-report/
+frontend/test-results/

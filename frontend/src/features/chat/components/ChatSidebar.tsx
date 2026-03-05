@@ -110,6 +110,7 @@ export function ChatSidebar({
             variant="outline"
             className="w-full justify-start gap-3 px-4 py-6 bg-background hover:bg-muted border-input shadow-sm"
             onClick={onNewChat}
+            aria-label="Create new chat"
           >
             <div className="bg-primary/10 p-1 rounded-full">
               <Plus className="h-4 w-4 text-primary" />
@@ -119,7 +120,7 @@ export function ChatSidebar({
         </div>
 
         <ScrollArea className="flex-1 px-3">
-          <div className="space-y-6 pb-4">
+          <div className="space-y-6 pb-4 pr-2">
             {visibleSections.map((section) => (
               <div key={section}>
                 <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
@@ -133,28 +134,28 @@ export function ChatSidebar({
                       <div
                         key={session.id}
                         className={cn(
-                          "flex items-center w-full group rounded-md min-w-0",
+                          "group grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 rounded-md",
                           isActive ? "bg-primary/10" : "hover:bg-accent"
                         )}
                       >
                         <Button
                           variant="ghost"
                           className={cn(
-                            "flex-1 justify-start px-3 py-2 h-auto font-normal min-w-0",
+                            "h-auto w-full min-w-0 justify-start overflow-hidden py-2 pl-3 pr-2 font-normal",
                             isActive
                               ? "text-primary hover:text-primary hover:bg-transparent"
                               : "text-muted-foreground hover:text-accent-foreground"
                           )}
                           onClick={() => onSelectSession(session.id)}
                         >
-                          {/* <MessageSquare className="h-4 w-4 mr-3 opacity-70 shrink-0" /> */}
-                          <span className="truncate">{session.title}</span>
+                          <span className="block truncate text-left">{session.title}</span>
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-transparent"
+                          className="mr-1 h-7 w-7 shrink-0 text-muted-foreground/80 transition-colors hover:bg-transparent hover:text-destructive"
                           onClick={(e) => handleDeleteClick(e, session.id)}
+                          aria-label={`Delete chat session: ${session.title}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
