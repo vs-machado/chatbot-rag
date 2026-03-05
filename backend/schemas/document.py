@@ -10,13 +10,14 @@ class APIKeyConfig(BaseModel):
 
     google_api_key: Optional[str] = Field(None, description="API key do Google Gemini")
     openai_api_key: Optional[str] = Field(None, description="API key da OpenAI")
+    openrouter_api_key: Optional[str] = Field(None, description="API key da OpenRouter")
 
 
 class ModelConfig(BaseModel):
     """Configuração de modelo para embedding ou LLM."""
 
     provider: Optional[str] = Field(
-        None, description="Provedor (google, openai, sentence_transformers)"
+        None, description="Provedor (google, openai, openrouter, sentence_transformers)"
     )
     model: Optional[str] = Field(None, description="Nome do modelo")
     api_keys: Optional[APIKeyConfig] = Field(None, description="API keys do usuário")

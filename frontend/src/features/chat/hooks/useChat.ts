@@ -1,13 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { ChatSession, Message } from '../types/types'
+import type { ChatModelOption, ChatSession, Message } from '../types/types'
 import {
   createChatSession,
   deleteChatSession,
   getChatSession,
+  listAvailableChatModels,
   listChatSessions,
   sendMessageWithRAG,
 } from '../services/chatService'
-import { NEW_CHAT_TITLE, NEW_CHAT_WELCOME_MESSAGE } from '../constants'
+import {
+  DEFAULT_CHAT_MODEL,
+  FALLBACK_CHAT_MODELS,
+  NEW_CHAT_TITLE,
+  NEW_CHAT_WELCOME_MESSAGE,
+} from '../constants'
 
 const createLocalId = () => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -21,6 +27,8 @@ export interface UseChatReturn {
   activeSessionId: string
   activeSession: ChatSession | null
   activeMessages: Message[]
+  availableModels: ChatModelOption[]
+  selectedModel: ChatModelOption
   isLoading: boolean
   isInitialized: boolean
   error: string | null
@@ -29,6 +37,7 @@ export interface UseChatReturn {
   handleNewChat: () => Promise<void>
   handleSendMessage: (content: string) => Promise<void>
   handleDeleteSession: (sessionId: string) => Promise<void>
+  handleSelectModel: (modelId: string) => void
   handleAttachDocuments: (documents: Array<{ content: string; filename: string }>) => void
   handleClearAttachedDocuments: () => void
   handleRemoveAttachedDocument: (index: number) => void
@@ -40,11 +49,28 @@ export const useChat = (): UseChatReturn => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [availableModels, setAvailableModels] = useState<ChatModelOption[]>(FALLBACK_CHAT_MODELS)
+  const [selectedModel, setSelectedModel] = useState<ChatModelOption>(DEFAULT_CHAT_MODEL)
   const [attachedDocuments, setAttachedDocuments] = useState<Array<{ content: string; filename: string }>>([])
 
-  // Carrega sessões do backend na inicialização
+  // Carrega modelos e sessões do backend na inicialização
   useEffect(() => {
-    const loadSessions = async () => {
+    const loadInitialData = async () => {
+      try {
+        const modelResponse = await listAvailableChatModels()
+        if (modelResponse.models.length > 0) {
+          setAvailableModels(modelResponse.models)
+          const defaultModel = modelResponse.models.find(
+            (model) =>
+              model.provider === modelResponse.defaultProvider &&
+              model.id === modelResponse.defaultModel
+          )
+          setSelectedModel(defaultModel ?? modelResponse.models[0])
+        }
+      } catch (err) {
+        console.error('Erro ao carregar modelos de chat:', err)
+      }
+
       try {
         const backendSessions = await listChatSessions()
         if (backendSessions.length > 0) {
@@ -72,7 +98,7 @@ export const useChat = (): UseChatReturn => {
       }
     }
 
-    loadSessions()
+    loadInitialData()
   }, [])
 
   const activeSession = useMemo(
@@ -135,6 +161,12 @@ export const useChat = (): UseChatReturn => {
     setError(null)
   }, [])
 
+  const handleSelectModel = useCallback((modelId: string) => {
+    const model = availableModels.find((item) => item.id === modelId)
+    if (!model) return
+    setSelectedModel(model)
+  }, [availableModels])
+
   const handleSendMessage = useCallback(
     async (content: string) => {
       if (!isInitialized || !activeSessionId || isLoading) return
@@ -193,7 +225,7 @@ export const useChat = (): UseChatReturn => {
         }
 
         // Envia mensagem via RAG (com conteúdo completo incluindo documentos)
-        const result = await sendMessageWithRAG(backendSessionId, fullContent)
+        const result = await sendMessageWithRAG(backendSessionId, fullContent, selectedModel)
 
         // Limpa documentos anexados após enviar
         setAttachedDocuments([])
@@ -236,7 +268,7 @@ export const useChat = (): UseChatReturn => {
         setIsLoading(false)
       }
     },
-    [isInitialized, activeSessionId, isLoading, sessions]
+    [isInitialized, activeSessionId, isLoading, sessions, attachedDocuments, selectedModel]
   )
 
   const handleDeleteSession = useCallback(async (sessionId: string) => {
@@ -290,6 +322,8 @@ export const useChat = (): UseChatReturn => {
     activeSessionId,
     activeSession,
     activeMessages,
+    availableModels,
+    selectedModel,
     isLoading,
     isInitialized,
     error,
@@ -298,6 +332,7 @@ export const useChat = (): UseChatReturn => {
     handleNewChat,
     handleSendMessage,
     handleDeleteSession,
+    handleSelectModel,
     handleAttachDocuments,
     handleClearAttachedDocuments,
     handleRemoveAttachedDocument,

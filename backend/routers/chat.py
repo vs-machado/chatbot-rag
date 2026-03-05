@@ -12,6 +12,7 @@ from controllers.chat import (
     delete_message_controller,
     delete_session_controller,
     get_session_controller,
+    list_available_models_controller,
     list_messages_controller,
     list_sessions_controller,
     send_message_with_rag_controller,
@@ -21,6 +22,7 @@ from database import get_db
 from schemas.chat import (
     ChatMessageListResponse,
     ChatMessageResponse,
+    ChatModelListResponse,
     ChatRAGRequest,
     ChatRAGResponse,
     ChatSessionCreate,
@@ -39,6 +41,12 @@ router = APIRouter(
 
 
 # Endpoints de Sessões
+@router.get("/models", response_model=ChatModelListResponse)
+def list_available_models():
+    """Lista modelos disponíveis para uso no chat."""
+    return list_available_models_controller()
+
+
 @router.post("/sessions", response_model=ChatSessionResponse, status_code=status.HTTP_201_CREATED)
 def create_session(
     session_data: ChatSessionCreate,

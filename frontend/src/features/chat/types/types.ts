@@ -5,6 +5,12 @@ export interface Message {
   timestamp: Date
 }
 
+export interface ChatModelOption {
+  id: string
+  label: string
+  provider: string
+}
+
 export interface ChatSession {
   id: string
   title: string

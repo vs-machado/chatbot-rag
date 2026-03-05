@@ -19,6 +19,7 @@ class LLMProvider(str, Enum):
 
     GOOGLE = "google"
     OPENAI = "openai"
+    OPENROUTER = "openrouter"
 
 
 # Configuração do banco de dados
@@ -61,6 +62,10 @@ LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.3"))
 # API Keys (podem ser sobrescritas por requisição)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL", "")
+OPENROUTER_APP_NAME = os.getenv("OPENROUTER_APP_NAME", "chatbot-rag")
 
 # Configuração de chunking para documentos
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))

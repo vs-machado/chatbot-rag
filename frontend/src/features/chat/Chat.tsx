@@ -18,10 +18,13 @@ export function Chat() {
     activeSessionId,
     activeSession,
     activeMessages,
+    availableModels,
+    selectedModel,
     isLoading,
     error,
     attachedDocuments,
     handleSelectSession,
+    handleSelectModel,
     handleNewChat,
     handleSendMessage,
     handleDeleteSession,
@@ -50,7 +53,12 @@ export function Chat() {
       />
 
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <ChatHeader title={activeSession?.title ?? NEW_CHAT_TITLE} />
+        <ChatHeader
+          title={activeSession?.title ?? NEW_CHAT_TITLE}
+          models={availableModels}
+          selectedModel={selectedModel}
+          onSelectModel={handleSelectModel}
+        />
 
         <div className="flex-1 min-h-0 overflow-hidden">
           <ScrollArea className="h-full">

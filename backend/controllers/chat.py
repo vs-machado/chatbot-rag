@@ -9,9 +9,12 @@ from typing import Optional
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from config import LLM_MODEL, LLM_PROVIDER
 from schemas.chat import (
     ChatMessageListResponse,
     ChatMessageResponse,
+    ChatModelListResponse,
+    ChatModelOption,
     ChatRAGRequest,
     ChatRAGResponse,
     ChatSessionCreate,
@@ -23,6 +26,7 @@ from schemas.chat import (
     SendMessageRequest,
 )
 from services import chat_service
+from services.llm_service import get_available_llm_models
 
 logger = logging.getLogger(__name__)
 
@@ -294,4 +298,19 @@ def send_message_with_rag_controller(
         sys.stdout.flush()
         raise HTTPException(
             status_code=500, detail=f"Erro ao processar mensagem com RAG: {str(e)}"
+        ) from e
+
+
+def list_available_models_controller() -> ChatModelListResponse:
+    """Controller para listar modelos de chat disponíveis."""
+    try:
+        models = get_available_llm_models()
+        return ChatModelListResponse(
+            models=[ChatModelOption(**model) for model in models],
+            default_provider=LLM_PROVIDER,
+            default_model=LLM_MODEL,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao listar modelos disponíveis: {str(e)}"
         ) from e

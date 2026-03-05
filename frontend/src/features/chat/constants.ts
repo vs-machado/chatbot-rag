@@ -1,11 +1,36 @@
-import type { ChatSession, Message } from "./types/types";
+import type { ChatModelOption, ChatSession, Message } from './types/types'
 
-export const NEW_CHAT_TITLE = "New chat";
+export const NEW_CHAT_TITLE = 'New chat'
+
+export const FALLBACK_CHAT_MODELS: ChatModelOption[] = [
+  {
+    id: 'gemini-2.5-flash',
+    label: 'Gemini 2.5 Flash',
+    provider: 'google',
+  },
+  {
+    id: 'arcee-ai/trinity-large-preview:free',
+    label: 'Trinity Large (Free)',
+    provider: 'openrouter',
+  },
+  {
+    id: 'arcee-ai/trinity-mini:free',
+    label: 'Trinity Mini (Free)',
+    provider: 'openrouter',
+  },
+  {
+    id: 'openai/gpt-oss-120b:free',
+    label: 'GPT OSS 120B (Free)',
+    provider: 'openrouter',
+  },
+]
+
+export const DEFAULT_CHAT_MODEL = FALLBACK_CHAT_MODELS[0]
 
 export const NEW_CHAT_WELCOME_MESSAGE: Omit<Message, "id" | "timestamp"> = {
-  role: "assistant",
-  content: "<p>New chat started. How can I help you today?</p>",
-};
+  role: 'assistant',
+  content: '<p>New chat started. How can I help you today?</p>',
+}
 
 export const INITIAL_CHAT_SESSIONS: ChatSession[] = [
   {
@@ -106,4 +131,4 @@ export const INITIAL_CHAT_SESSIONS: ChatSession[] = [
       },
     ],
   },
-];
+]

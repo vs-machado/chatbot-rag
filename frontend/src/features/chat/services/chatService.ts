@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { api } from '@/services/api'
-import type { Message, ChatSession } from '../types/types'
+import type { ChatModelOption, Message, ChatSession } from '../types/types'
 import { chatLogger, createRequestTimer } from '@/lib/logger'
 
 // Tipos da API backend
@@ -18,6 +18,12 @@ export interface ChatSessionListResponse {
   total: number
   page: number
   page_size: number
+}
+
+export interface ChatModelsResponse {
+  models: ChatModelOption[]
+  default_provider: string
+  default_model: string
 }
 
 export interface ChatMessageResponse {
@@ -50,6 +56,16 @@ export interface CreateSessionRequest {
 
 export interface SendRAGMessageRequest {
   content: string
+  model_config?: {
+    provider: string
+    model: string
+  }
+}
+
+export interface AvailableChatModels {
+  models: ChatModelOption[]
+  defaultProvider: string
+  defaultModel: string
 }
 
 // Mappers: converte respostas da API para tipos do domínio do frontend
@@ -139,18 +155,34 @@ export const getChatSession = async (sessionId: string): Promise<ChatSession> =>
 // Envia mensagem usando RAG (Retrieval-Augmented Generation)
 export const sendMessageWithRAG = async (
   sessionId: string,
-  content: string
+  content: string,
+  model?: ChatModelOption
 ): Promise<{ message: Message; sources: DocumentSource[]; contextUsed: boolean; title?: string }> => {
   const endTimer = createRequestTimer(`/api/v1/chat/sessions/${sessionId}/rag`, 'POST')
-  chatLogger.info('Enviando mensagem com RAG', { sessionId, contentLength: content.length })
+  chatLogger.info('Enviando mensagem com RAG', {
+    sessionId,
+    contentLength: content.length,
+    modelId: model?.id,
+    provider: model?.provider,
+  })
   const startTime = performance.now()
 
   try {
+    const payload: SendRAGMessageRequest = {
+      content,
+      ...(model
+        ? {
+            model_config: {
+              provider: model.provider,
+              model: model.id,
+            },
+          }
+        : {}),
+    }
+
     const response = await api.post<ChatRAGResponse>(
       `/api/v1/chat/sessions/${sessionId}/rag`,
-      {
-        content,
-      }
+      payload
     )
 
     const duration = Math.round(performance.now() - startTime)
@@ -179,6 +211,29 @@ export const sendMessageWithRAG = async (
       throw new Error(`Erro ao enviar mensagem: ${message}`)
     }
     chatLogger.error('Erro ao enviar mensagem', { sessionId, duration, error })
+    throw error
+  }
+}
+
+export const listAvailableChatModels = async (): Promise<AvailableChatModels> => {
+  const endTimer = createRequestTimer('/api/v1/chat/models', 'GET')
+  chatLogger.info('Listando modelos disponíveis para chat')
+
+  try {
+    const response = await api.get<ChatModelsResponse>('/api/v1/chat/models')
+    endTimer()
+
+    return {
+      models: response.data.models,
+      defaultProvider: response.data.default_provider,
+      defaultModel: response.data.default_model,
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message
+      chatLogger.error('Erro ao listar modelos de chat', { error: message })
+      throw new Error(`Erro ao listar modelos de chat: ${message}`)
+    }
     throw error
   }
 }

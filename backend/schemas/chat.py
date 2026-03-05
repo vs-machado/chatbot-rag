@@ -108,6 +108,22 @@ class DocumentSource(BaseModel):
     score: float
 
 
+class ChatModelOption(BaseModel):
+    """Schema para opção de modelo disponível no chat."""
+
+    id: str
+    label: str
+    provider: str
+
+
+class ChatModelListResponse(BaseModel):
+    """Schema de resposta para lista de modelos de chat."""
+
+    models: list[ChatModelOption]
+    default_provider: str
+    default_model: str
+
+
 class ChatRAGRequest(BaseModel):
     """Schema para requisição de mensagem com RAG."""
 

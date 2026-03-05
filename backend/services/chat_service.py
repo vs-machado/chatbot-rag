@@ -205,7 +205,7 @@ def send_message_with_rag(
         db=db,
         query=user_message,
         top_k=top_k,
-        model_config=model_config,
+        model_config=None,
     )
     logger.info(f"[RAG Service] Busca de documentos: {time.time() - step_start:.3f}s (encontrados: {len(search_results)})")
     sys.stdout.flush()
@@ -265,6 +265,11 @@ def send_message_with_rag(
             ),
             openai_api_key=(
                 model_config.api_keys.openai_api_key
+                if model_config and model_config.api_keys
+                else None
+            ),
+            openrouter_api_key=(
+                model_config.api_keys.openrouter_api_key
                 if model_config and model_config.api_keys
                 else None
             ),

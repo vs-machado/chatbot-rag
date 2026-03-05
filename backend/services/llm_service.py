@@ -10,8 +10,48 @@ from config import (
     LLM_PROVIDER,
     LLM_TEMPERATURE,
     OPENAI_API_KEY,
+    OPENROUTER_API_KEY,
+    OPENROUTER_APP_NAME,
+    OPENROUTER_BASE_URL,
+    OPENROUTER_SITE_URL,
     LLMProvider,
 )
+
+AVAILABLE_LLM_MODELS: list[dict[str, str]] = [
+    {
+        "id": "gemini-2.5-flash",
+        "label": "Gemini 2.5 Flash",
+        "provider": "google",
+    },
+    {
+        "id": "arcee-ai/trinity-large-preview:free",
+        "label": "Trinity Large (Free)",
+        "provider": "openrouter",
+    },
+    {
+        "id": "arcee-ai/trinity-mini:free",
+        "label": "Trinity Mini (Free)",
+        "provider": "openrouter",
+    },
+    {
+        "id": "openai/gpt-oss-120b:free",
+        "label": "GPT OSS 120B (Free)",
+        "provider": "openrouter",
+    },
+]
+
+
+def _get_openrouter_headers() -> dict[str, str]:
+    """Retorna headers opcionais recomendados pelo OpenRouter."""
+    headers: dict[str, str] = {}
+
+    if OPENROUTER_SITE_URL:
+        headers["HTTP-Referer"] = OPENROUTER_SITE_URL
+
+    if OPENROUTER_APP_NAME:
+        headers["X-Title"] = OPENROUTER_APP_NAME
+
+    return headers
 
 
 def get_llm(
@@ -19,16 +59,18 @@ def get_llm(
     model: Optional[str] = None,
     google_api_key: Optional[str] = None,
     openai_api_key: Optional[str] = None,
+    openrouter_api_key: Optional[str] = None,
     temperature: float = LLM_TEMPERATURE,
     **kwargs,
 ) -> BaseChatModel:
     """Retorna uma instância do LLM baseado no provedor especificado.
 
     Args:
-        provider: Provedor do LLM (google, openai). Usa LLM_PROVIDER se não especificado.
+        provider: Provedor do LLM (google, openai, openrouter). Usa LLM_PROVIDER se não especificado.
         model: Nome do modelo. Usa LLM_MODEL se não especificado.
         google_api_key: API key do Google. Usa GOOGLE_API_KEY se não especificado.
         openai_api_key: API key da OpenAI. Usa OPENAI_API_KEY se não especificado.
+        openrouter_api_key: API key do OpenRouter. Usa OPENROUTER_API_KEY se não especificado.
         temperature: Temperatura para geração (0-1).
         **kwargs: Argumentos adicionais passados ao modelo.
 
@@ -78,21 +120,36 @@ def get_llm(
 
         return ChatOpenAI(model=model, api_key=api_key, temperature=temperature, **kwargs)
 
+    elif provider == "openrouter":
+        api_key = openrouter_api_key or OPENROUTER_API_KEY
+        if not api_key:
+            raise ValueError(
+                "OpenRouter API key não configurada. Forneça via parâmetro ou variável OPENROUTER_API_KEY."
+            )
+
+        base_url = kwargs.pop("base_url", OPENROUTER_BASE_URL)
+        custom_headers = kwargs.pop("default_headers", None) or {}
+        default_headers = {**_get_openrouter_headers(), **custom_headers}
+
+        return ChatOpenAI(
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
+            temperature=temperature,
+            default_headers=default_headers,
+            **kwargs,
+        )
+
     else:
-        raise ValueError(f"Provedor de LLM não suportado: {provider}. Use 'google' ou 'openai'.")
+        raise ValueError(
+            f"Provedor de LLM não suportado: {provider}. Use 'google', 'openai' ou 'openrouter'."
+        )
 
 
-def get_available_llm_models() -> dict[str, list[str]]:
+def get_available_llm_models() -> list[dict[str, str]]:
     """Retorna os modelos de LLM disponíveis por provedor.
 
     Returns:
-        Dicionário com provedores e seus modelos disponíveis.
+        Lista de modelos disponíveis com provedor e rótulo para UI.
     """
-    return {
-        "google": [
-            "gemini-3-flash-preview",
-        ],
-        "openai": [
-            "gpt-4o",
-        ],
-    }
+    return AVAILABLE_LLM_MODELS

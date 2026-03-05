@@ -1,16 +1,59 @@
+import { ChevronDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import type { ChatModelOption } from '../types/types'
+
 interface ChatHeaderProps {
-  title: string;
+  title: string
+  models: ChatModelOption[]
+  selectedModel: ChatModelOption
+  onSelectModel: (modelId: string) => void
 }
 
-export function ChatHeader({ title }: ChatHeaderProps) {
+export function ChatHeader({
+  title,
+  models,
+  selectedModel,
+  onSelectModel,
+}: ChatHeaderProps) {
   return (
-    <header className="h-16 flex items-center justify-between px-6 border-b bg-background/50 backdrop-blur-md sticky top-0 z-10">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold">{title}</span>
-        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-muted text-muted-foreground uppercase tracking-wide">
-          Gemini 3 Flash
-        </span>
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/70 px-4 backdrop-blur-md sm:px-6">
+      <div className="min-w-0">
+        <span className="block truncate text-sm font-semibold">{title}</span>
       </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="max-w-48 gap-2">
+            <span className="truncate text-xs sm:text-sm">{selectedModel.label}</span>
+            <ChevronDown className="h-4 w-4 shrink-0" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-72">
+          <DropdownMenuLabel>Modelos disponíveis</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioGroup value={selectedModel.id} onValueChange={onSelectModel}>
+            {models.map((model) => (
+              <DropdownMenuRadioItem key={`${model.provider}-${model.id}`} value={model.id}>
+                <div className="flex w-full items-center justify-between gap-2">
+                  <span className="truncate">{model.label}</span>
+                  <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {model.provider}
+                  </span>
+                </div>
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
-  );
+  )
 }
