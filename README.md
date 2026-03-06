@@ -192,3 +192,21 @@ For LLM execution, also configure `backend/.env` with:
 ## Development
 
 See `AGENTS.md` for detailed coding guidelines and best practices.
+
+### Git Hooks
+
+To install the local Git hooks in your clone, run:
+
+```bash
+node scripts/install-hooks.mjs
+```
+
+This command copies `.githooks/pre-commit` to `.git/hooks/pre-commit` on your machine.
+
+After installation, every `git commit` runs the pre-commit hook automatically. Right now it executes the frontend end-to-end suite with:
+
+```bash
+npm run test:e2e
+```
+
+If the test fails, the commit is blocked.
