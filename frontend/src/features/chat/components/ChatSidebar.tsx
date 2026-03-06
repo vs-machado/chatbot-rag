@@ -240,7 +240,7 @@ export function ChatSidebar({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="mr-1 h-7 w-7 shrink-0 text-muted-foreground/80 transition-colors hover:bg-transparent hover:text-destructive"
+                          className="mr-1 h-7 w-7 shrink-0 opacity-0 text-muted-foreground/80 transition-[opacity,color] group-hover:opacity-100 hover:bg-transparent hover:text-destructive focus-visible:opacity-100"
                           onClick={(e) => handleDeleteClick(e, session.id)}
                           aria-label={`Delete chat session: ${session.title}`}
                         >

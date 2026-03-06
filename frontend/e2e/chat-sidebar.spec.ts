@@ -2,13 +2,19 @@ import { expect, test } from '@playwright/test'
 
 test.use({ viewport: { width: 1280, height: 800 } })
 
-test('delete button stays visible with usable hit area', async ({ page }) => {
+test('delete button appears on hover with usable hit area', async ({ page }) => {
   await page.goto('/')
 
   await page.getByRole('button', { name: 'Create new chat' }).click()
 
+  const sessionRow = page.getByLabel('Delete chat session: New chat').first().locator('xpath=..')
   const deleteButton = page.getByLabel('Delete chat session: New chat').first()
 
+  await expect(deleteButton).toHaveCSS('opacity', '0')
+
+  await sessionRow.hover()
+
+  await expect(deleteButton).toHaveCSS('opacity', '1')
   await expect(deleteButton).toBeVisible()
   await expect(deleteButton).toBeInViewport({ ratio: 0.9 })
 
