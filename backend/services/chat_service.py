@@ -323,7 +323,11 @@ def send_message_with_rag(
         [
             (
                 "system",
-                "Você é um assistente inteligente que responde perguntas baseado majoritariamente no contexto fornecido. "
+                "You are an intelligent assistant that answers questions primarily using the provided context. "
+                "First identify the dominant language of the user's latest message. "
+                "Respond entirely and exclusively in that same language. "
+                "Never switch to Portuguese unless the user's message is in Portuguese. "
+                "If the context is in another language, translate or adapt the information to the user's language in the final answer. "
                 "Comece TODA resposta com exatamente um dos seguintes marcadores internos: "
                 "[[RESPONSE_SOURCE:DATABASE]] quando a resposta estiver sustentada pelo contexto; "
                 "[[RESPONSE_SOURCE:MODEL_FALLBACK]] quando o contexto não trouxer informação suficiente e você precisar complementar com conhecimento próprio. "
@@ -332,7 +336,7 @@ def send_message_with_rag(
             ),
             (
                 "human",
-                "Contexto:\n{context}\n\nPergunta: {question}\n\nResposta:",
+                "<context>\n{context}\n</context>\n\n<user_message>\n{question}\n</user_message>\n\n<assistant_response>",
             ),
         ]
     )
@@ -341,7 +345,7 @@ def send_message_with_rag(
     step_start = time.time()
     generated_title = None
     try:
-        logger.info(f"[RAG Service] Iniciando geração LLM...")
+        logger.info("[RAG Service] Iniciando geração LLM...")
         sys.stdout.flush()
         llm = get_llm(
             provider=model_config.provider if model_config else None,
@@ -395,8 +399,9 @@ def send_message_with_rag(
                     [
                         (
                             "system",
-                            "Gere um título curto e descritivo para esta conversa. "
-                            "Máximo 40 caracteres. Responda APENAS com o título, nada mais.",
+                            "Generate a short descriptive title for this conversation. "
+                            "Use the same language as the user's message. "
+                            "Maximum 40 characters. Reply with the title only.",
                         ),
                         (
                             "human",
