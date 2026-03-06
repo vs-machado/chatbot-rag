@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Bot, ChevronDown, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -135,8 +135,12 @@ export function ChatSidebar({
       >
         <div className="flex h-20 items-center border-b border-sidebar-border/80 px-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
-              <Bot className="h-5 w-5" />
+            <div className="h-10 w-10 overflow-hidden rounded-2xl shadow-lg shadow-primary/20 ring-1 ring-border/60">
+              <img
+                src="/chatbot_icon.png"
+                alt="RAG Assistant"
+                className="h-full w-full scale-150 object-cover object-center"
+              />
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">
