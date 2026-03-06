@@ -1,6 +1,34 @@
-# Chatbot with RAG
+<p align="center">
+  <img width="120" alt="Chatbot icon" src="https://github.com/user-attachments/assets/bf148d38-a0d3-4dd6-835a-e1d3755646af" />
+</p>
 
-A chatbot application with Retrieval-Augmented Generation (RAG) capabilities.
+<h1 align="center">Chatbot with RAG</h1>
+
+
+<p align="center">
+  A chatbot application with Retrieval-Augmented Generation (RAG) capabilities.
+</p>
+
+<p align="center">
+  <img width="48%" alt="Chat interface screenshot" src="https://github.com/user-attachments/assets/fa79630a-ee79-4009-a4e9-a2e7dd7aa0fb" />
+
+  <img width="48%" alt="Document upload and knowledge base screenshot" src="https://github.com/user-attachments/assets/e2b0d3fb-c026-4f67-ac9a-e41891cac08c" />
+
+</p>
+
+## Overview
+
+This project combines a React frontend and a FastAPI backend to let users upload documents, search relevant context, and chat with an LLM grounded by the knowledge base.
+
+## How to Use
+
+1. Start the application and open the chat interface.
+2. Attach one or more documents before asking questions.
+3. Choose whether the files should be used only in the current chat or saved to the knowledge base.
+4. Wait for the upload and processing to finish.
+5. Ask questions about the uploaded content and the assistant will answer based on the retrieved context.
+
+Important: the chatbot works best when documents are added first. If no relevant document is available, the answer may fall back to the model's general knowledge.
 
 ## Tech Stack
 
