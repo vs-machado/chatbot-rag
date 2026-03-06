@@ -43,6 +43,22 @@ chatbot-rag/
 └── README.md
 ```
 
+## Supported Chat Models
+
+The chatbot currently supports the following models:
+
+- `Gemini 2.5 Flash` via Google (`gemini-2.5-flash`)
+- `Trinity Large (Free)` via OpenRouter (`arcee-ai/trinity-large-preview:free`)
+- `Trinity Mini (Free)` via OpenRouter (`arcee-ai/trinity-mini:free`)
+- `GPT OSS 120B (Free)` via OpenRouter (`openai/gpt-oss-120b:free`)
+
+Important: to run the chat features, you must obtain and configure at least one provider API key:
+
+- `GOOGLE_API_KEY` for Gemini models
+- `OPENROUTER_API_KEY` for OpenRouter models
+
+Without one of these keys configured in `backend/.env`, the application can start, but chat requests will fail when trying to use an LLM.
+
 ## Getting Started
 
 ### Prerequisites
@@ -53,19 +69,22 @@ chatbot-rag/
 ### Quick Start with Docker (Recommended)
 
 ```bash
-# Copia o arquivo de ambiente
+# Copy the environment file
 cp .env.example .env
 
-# Inicia todos os serviços (desenvolvimento)
+# Copy the backend environment file and configure your API key
+cp backend/.env.example backend/.env
+
+# Start all services (development)
 docker-compose up
 
-# Ou em modo detached
+# Or run in detached mode
 docker-compose up -d
 ```
 
-**Serviços disponíveis:**
-| Serviço | URL | Descrição |
-|---------|-----|-----------|
+**Available services:**
+| Service | URL | Description |
+|---------|-----|-------------|
 | Frontend | http://localhost:5173 | React + Vite (hot-reload) |
 | Backend | http://localhost:8000 | FastAPI + uvicorn |
 | API Docs | http://localhost:8000/docs | Swagger UI |
@@ -74,38 +93,38 @@ docker-compose up -d
 ### Docker Compose Commands
 
 ```bash
-# Desenvolvimento (padrão)
+# Development (default)
 docker-compose up
 
-# Testes (banco isolado na porta 5433)
+# Tests (isolated database on port 5433)
 docker-compose -f docker-compose.yml -f docker-compose.test.yml up
 
-# Produção (nginx + uvicorn otimizado)
+# Production (nginx + optimized uvicorn)
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
-# Rebuild após mudanças no Dockerfile
+# Rebuild after Dockerfile changes
 docker-compose up --build
 
-# Parar todos os serviços
+# Stop all services
 docker-compose down
 
-# Parar e remover volumes (limpa o banco)
+# Stop and remove volumes (clears the database)
 docker-compose down -v
 
-# Ver logs de um serviço específico
+# View logs for a specific service
 docker-compose logs -f backend
 ```
 
 ### Database Migrations
 
 ```bash
-# Executar migrations (dentro do container)
+# Run migrations (inside the container)
 docker-compose exec backend alembic upgrade head
 
-# Criar nova migration
+# Create a new migration
 docker-compose exec backend alembic revision --autogenerate -m "description"
 
-# Reverter última migration
+# Revert the last migration
 docker-compose exec backend alembic downgrade -1
 ```
 
@@ -126,26 +145,26 @@ The frontend will be available at `http://localhost:5173`
 ```bash
 cd backend
 
-# Cria ambiente virtual
+# Create a virtual environment
 python -m venv venv
 
-# Ativa o ambiente virtual
+# Activate the virtual environment
 # Windows:
 venv\Scripts\activate
 # Linux/Mac:
 source venv/bin/activate
 
-# Instala as dependências
+# Install dependencies
 pip install -r requirements.txt
 
-# Configura variáveis de ambiente
+# Configure environment variables
 cp .env.example .env
-# Edite .env com suas configurações
+# Edit `.env` with your settings
 
-# Executa migrations
+# Run migrations
 alembic upgrade head
 
-# Executa o servidor
+# Start the server
 python main.py
 ```
 
@@ -163,6 +182,12 @@ API Documentation:
 | `POSTGRES_PASSWORD` | chatbot123 | PostgreSQL password |
 | `POSTGRES_DB` | chatbot_rag | Database name |
 | `EMBEDDING_MODEL` | all-MiniLM-L6-v2 | Sentence Transformers model |
+
+For LLM execution, also configure `backend/.env` with:
+
+- `GOOGLE_API_KEY` to use Gemini
+- `OPENROUTER_API_KEY` to use OpenRouter models
+- `LLM_PROVIDER` and `LLM_MODEL` to define the default chat model
 
 ## Development
 
