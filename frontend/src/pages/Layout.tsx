@@ -7,10 +7,7 @@ export function Layout() {
 
   if (isChatRoute) {
     return (
-      <div className="min-h-screen bg-background font-sans antialiased relative">
-        <div className="absolute top-4 right-4 z-50">
-          <ModeToggle />
-        </div>
+      <div className="min-h-screen bg-background font-sans antialiased">
         <Outlet />
       </div>
     )

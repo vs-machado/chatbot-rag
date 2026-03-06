@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { ModeToggle } from '@/features/mode-toggle'
 import type { ChatModelOption } from '../types/types'
 
 interface ChatHeaderProps {
@@ -30,30 +31,34 @@ export function ChatHeader({
         <span className="block truncate text-sm font-semibold">{title}</span>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="max-w-48 gap-2">
-            <span className="truncate text-xs sm:text-sm">{selectedModel.label}</span>
-            <ChevronDown className="h-4 w-4 shrink-0" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-72">
-          <DropdownMenuLabel>Modelos disponíveis</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuRadioGroup value={selectedModel.id} onValueChange={onSelectModel}>
-            {models.map((model) => (
-              <DropdownMenuRadioItem key={`${model.provider}-${model.id}`} value={model.id}>
-                <div className="flex w-full items-center justify-between gap-2">
-                  <span className="truncate">{model.label}</span>
-                  <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
-                    {model.provider}
-                  </span>
-                </div>
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-2">
+        <ModeToggle />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="max-w-48 gap-2">
+              <span className="truncate text-xs sm:text-sm">{selectedModel.label}</span>
+              <ChevronDown className="h-4 w-4 shrink-0" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-72">
+            <DropdownMenuLabel>Modelos disponíveis</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup value={selectedModel.id} onValueChange={onSelectModel}>
+              {models.map((model) => (
+                <DropdownMenuRadioItem key={`${model.provider}-${model.id}`} value={model.id}>
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span className="truncate">{model.label}</span>
+                    <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
+                      {model.provider}
+                    </span>
+                  </div>
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   )
 }
