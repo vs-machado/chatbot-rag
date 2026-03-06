@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -17,6 +17,7 @@ interface ChatHeaderProps {
   models: ChatModelOption[]
   selectedModel: ChatModelOption
   onSelectModel: (modelId: string) => void
+  onOpenSidebar: () => void
 }
 
 export function ChatHeader({
@@ -24,10 +25,21 @@ export function ChatHeader({
   models,
   selectedModel,
   onSelectModel,
+  onOpenSidebar,
 }: ChatHeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b border-border/70 bg-background/72 px-4 backdrop-blur-xl sm:px-6">
-      <div className="min-w-0">
+      <div className="flex min-w-0 items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={onOpenSidebar}
+          aria-label="Open chat sidebar"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+
         <span className="block truncate text-base font-semibold tracking-tight text-foreground">{title}</span>
       </div>
 

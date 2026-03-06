@@ -23,6 +23,7 @@ import {
 
 interface ChatSidebarProps {
   className?: string;
+  isMobile?: boolean;
   sessions: ChatSession[];
   activeSessionId: string;
   onNewChat: () => void;
@@ -59,6 +60,7 @@ function getSessionGroupLabel(sessionDate: Date): string {
 
 export function ChatSidebar({
   className,
+  isMobile = false,
   sessions,
   activeSessionId,
   onNewChat,
@@ -106,7 +108,10 @@ export function ChatSidebar({
     <>
       <aside
         className={cn(
-          "w-70 flex h-full shrink-0 flex-col border-r border-sidebar-border/80 bg-sidebar/88 backdrop-blur-xl transition-all duration-300",
+          "w-70 flex h-full shrink-0 flex-col border-r transition-all duration-300",
+          isMobile
+            ? "border-sidebar-border bg-sidebar text-sidebar-foreground"
+            : "border-sidebar-border/80 bg-sidebar/88 backdrop-blur-xl",
           className
         )}
       >
