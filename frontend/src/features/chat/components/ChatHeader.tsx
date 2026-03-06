@@ -26,9 +26,9 @@ export function ChatHeader({
   onSelectModel,
 }: ChatHeaderProps) {
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/70 px-4 backdrop-blur-md sm:px-6">
+    <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b bg-background/70 px-4 backdrop-blur-md sm:px-6">
       <div className="min-w-0">
-        <span className="block truncate text-sm font-semibold">{title}</span>
+        <span className="block truncate text-base font-semibold">{title}</span>
       </div>
 
       <div className="flex items-center gap-2">
@@ -36,7 +36,7 @@ export function ChatHeader({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="max-w-48 gap-2">
+            <Button variant="outline" className="h-9 max-w-48 gap-2 px-3">
               <span className="truncate text-xs sm:text-sm">{selectedModel.label}</span>
               <ChevronDown className="h-4 w-4 shrink-0" />
             </Button>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, Settings, Trash2 } from "lucide-react";
+import { Bot, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +15,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DEFAULT_USER_AVATAR_FALLBACK,
+  DEFAULT_USER_AVATAR_SRC,
+  DEFAULT_USER_NAME,
+} from "../constants";
 
 interface ChatSidebarProps {
   className?: string;
@@ -105,6 +110,20 @@ export function ChatSidebar({
           className
         )}
       >
+        <div className="flex h-20 items-center border-b px-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500 text-white">
+              <Bot className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">
+                RAG Assistant
+              </p>
+              <p className="truncate text-xs text-muted-foreground">Chat about your documents!</p>
+            </div>
+          </div>
+        </div>
+
         <div className="p-4">
           <Button
             variant="outline"
@@ -169,20 +188,15 @@ export function ChatSidebar({
         </ScrollArea>
 
         <div className="p-4 border-t space-y-2">
-          <Button
-            variant="ghost"
-            className="w-full justify-start px-1 py-1 h-auto hover:bg-muted group"
-          >
-            <Avatar className="h-8 w-8 mr-3 border">
-              <AvatarImage src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQD5UnORwz1VbrJnNxbbEgOuT7KMEzzr-XTaFy39tTf1L-hhpKXfvqFzRnj0xeu0OG_nlQfO2qo5ZO4TtPnXKPKJLSAS-8oMaS5BQ2cCGo5mgZ4jmKjRSU_D6C7p8P_AXUmPFqdj2-ixMPkTjSf6qaIfDiPxdVe1Yl20xRw0Qh41Pz3m0XHVsThRSFsD0EFiokVS0h83kupoOKFRS53EFEs28HjxZor73lvnbs8Yqp32jCgWTWxT3x21uyFR4NBaL46V7TBH8h" alt="User Avatar" />
-              <AvatarFallback>AD</AvatarFallback>
+          <div className="flex w-full items-center px-1 py-1">
+            <Avatar className="h-7 w-7 mr-3 border">
+              <AvatarImage src={DEFAULT_USER_AVATAR_SRC} alt={DEFAULT_USER_NAME} />
+              <AvatarFallback>{DEFAULT_USER_AVATAR_FALLBACK}</AvatarFallback>
             </Avatar>
             <div className="text-left flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Alex Designer</p>
-              <p className="text-xs text-muted-foreground truncate">Pro Plan</p>
+              <p className="text-sm font-medium truncate">{DEFAULT_USER_NAME}</p>
             </div>
-            <Settings className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-          </Button>
+          </div>
         </div>
       </aside>
 

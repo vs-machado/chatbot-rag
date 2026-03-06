@@ -27,6 +27,13 @@ export const FALLBACK_CHAT_MODELS: ChatModelOption[] = [
 
 export const DEFAULT_CHAT_MODEL = FALLBACK_CHAT_MODELS[0]
 
+export const DEFAULT_USER_NAME = 'Default User'
+
+export const DEFAULT_USER_AVATAR_SRC =
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuAQD5UnORwz1VbrJnNxbbEgOuT7KMEzzr-XTaFy39tTf1L-hhpKXfvqFzRnj0xeu0OG_nlQfO2qo5ZO4TtPnXKPKJLSAS-8oMaS5BQ2cCGo5mgZ4jmKjRSU_D6C7p8P_AXUmPFqdj2-ixMPkTjSf6qaIfDiPxdVe1Yl20xRw0Qh41Pz3m0XHVsThRSFsD0EFiokVS0h83kupoOKFRS53EFEs28HjxZor73lvnbs8Yqp32jCgWTWxT3x21uyFR4NBaL46V7TBH8h'
+
+export const DEFAULT_USER_AVATAR_FALLBACK = 'DU'
+
 export const NEW_CHAT_WELCOME_MESSAGE: Omit<Message, "id" | "timestamp"> = {
   role: 'assistant',
   content: '<p>New chat started. How can I help you today?</p>',

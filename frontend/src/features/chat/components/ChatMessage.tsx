@@ -3,6 +3,10 @@ import { Bot, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DEFAULT_USER_AVATAR_FALLBACK,
+  DEFAULT_USER_AVATAR_SRC,
+} from "../constants";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
@@ -29,15 +33,15 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
 
   return (
     <div className={cn("flex gap-4 max-w-4xl mx-auto", isUser && "flex-row-reverse")}>
-      <Avatar className={cn("h-8 w-8 mt-1", !isUser && "bg-green-500")}>
+      <Avatar className={cn("h-7 w-7 mt-1", !isUser && "bg-green-500")}>
         {!isUser ? (
           <AvatarFallback className="bg-transparent text-white">
             <Bot className="h-5 w-5" />
           </AvatarFallback>
         ) : (
           <>
-            <AvatarImage src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzjaOl4iSy2ljx5wB4cWw0OHQqCo8fbJUElpLOgNwDg6arDpdugX_-Eauy1AUlGsxK5ubhAWvEFbYVkrojqFctmwtS3xUsn8mRqnrfYmdpkun04kKbo-SskoXR4kxUCI1OfZuW2VrIUbxXCD7CgoEsXEffin81wn8jjH9iH-nnc9EZrfZH59TOXGeRHo7UBDYBkrhwxhlHgmsqj54bBpL3aQRcVx8u-pG342pX9IWOaSCsJgyNl_QweM2izthL34crWLwpBj4C" />
-            <AvatarFallback>Me</AvatarFallback>
+            <AvatarImage src={DEFAULT_USER_AVATAR_SRC} alt="Default User" />
+            <AvatarFallback>{DEFAULT_USER_AVATAR_FALLBACK}</AvatarFallback>
           </>
         )}
       </Avatar>
