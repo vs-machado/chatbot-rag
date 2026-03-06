@@ -32,8 +32,8 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
   };
 
   return (
-    <div className={cn("flex gap-4 max-w-4xl mx-auto", isUser && "flex-row-reverse")}>
-      <Avatar className={cn("h-7 w-7 mt-1", !isUser && "bg-green-500")}>
+    <div className={cn("mx-auto flex max-w-4xl gap-4", isUser && "flex-row-reverse")}>
+      <Avatar className={cn("mt-1 h-7 w-7 ring-1 ring-border/70", !isUser && "bg-primary text-primary-foreground")}>
         {!isUser ? (
           <AvatarFallback className="bg-transparent text-white">
             <Bot className="h-5 w-5" />
@@ -46,7 +46,7 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
         )}
       </Avatar>
 
-      <div className={cn("flex-1 space-y-2 min-w-0", isUser && "text-right")}>
+      <div className={cn("min-w-0 flex-1 space-y-2", isUser && "text-right")}>
         <div className={cn("flex items-baseline justify-between", isUser && "justify-end gap-2")}>
           {!isUser && <span className="text-sm font-semibold">Assistant</span>}
           <span className="text-xs text-muted-foreground">{timestamp}</span>
@@ -54,13 +54,13 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
         </div>
 
         {isUser ? (
-          <div className="inline-block bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-5 py-3 text-left shadow-lg shadow-primary/20">
+          <div className="inline-block rounded-3xl rounded-tr-sm border border-primary/15 bg-primary px-5 py-3 text-left text-primary-foreground">
             <p className="text-[15px] whitespace-pre-wrap">{content}</p>
           </div>
         ) : (
           <div className="space-y-2">
             <div
-              className="max-w-none text-foreground text-[15px] leading-relaxed [&_p]:my-0 [&_p:not(:first-child)]:mt-3 [&_pre]:mt-3 [&_pre]:mb-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-slate-700 [&_pre]:bg-slate-950 [&_pre]:p-4 [&_code]:font-mono [&_code]:text-sm [&_pre_code]:text-slate-100"
+              className="max-w-none rounded-3xl rounded-tl-sm border border-border/60 bg-card/80 px-5 py-4 text-[15px] leading-relaxed text-foreground [&_p]:my-0 [&_p:not(:first-child)]:mt-3 [&_pre]:mt-3 [&_pre]:mb-3 [&_pre]:overflow-x-auto [&_pre]:rounded-2xl [&_pre]:border [&_pre]:border-emerald-950/70 [&_pre]:bg-emerald-950 [&_pre]:p-4 [&_code]:font-mono [&_code]:text-sm [&_pre_code]:text-emerald-50"
               dangerouslySetInnerHTML={{ __html: content }}
             />
 

@@ -42,7 +42,7 @@ export function Chat() {
   }, [activeMessages, isLoading]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="relative flex h-screen overflow-hidden bg-background">
       <ChatSidebar
         className="hidden md:flex"
         sessions={sessions}
@@ -52,7 +52,7 @@ export function Chat() {
         onDeleteSession={handleDeleteSession}
       />
 
-      <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
         <ChatHeader
           title={activeSession?.title ?? NEW_CHAT_TITLE}
           models={availableModels}
@@ -60,14 +60,14 @@ export function Chat() {
           onSelectModel={handleSelectModel}
         />
 
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-hidden">
           <ScrollArea className="h-full">
-            <div className="space-y-8 px-4 pt-4 pb-4 sm:px-6 lg:px-10">
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+            <div className="space-y-8 px-4 pt-6 pb-4 sm:px-6 lg:px-10">
+             {error && (
+               <Alert variant="destructive" className="mb-4">
+                 <AlertDescription>{error}</AlertDescription>
+               </Alert>
+             )}
             {activeMessages.map((message) => (
               <ChatMessage
                 key={message.id}

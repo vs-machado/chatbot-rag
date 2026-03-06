@@ -106,13 +106,13 @@ export function ChatSidebar({
     <>
       <aside
         className={cn(
-          "w-70 shrink-0 bg-background border-r flex flex-col h-full transition-all duration-300",
+          "w-70 flex h-full shrink-0 flex-col border-r border-sidebar-border/80 bg-sidebar/88 backdrop-blur-xl transition-all duration-300",
           className
         )}
       >
-        <div className="flex h-20 items-center border-b px-4">
+        <div className="flex h-20 items-center border-b border-sidebar-border/80 px-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500 text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
               <Bot className="h-5 w-5" />
             </div>
             <div className="min-w-0">
@@ -127,11 +127,11 @@ export function ChatSidebar({
         <div className="px-3 py-4 pr-5">
           <Button
             variant="outline"
-            className="h-auto w-full justify-start gap-3 overflow-hidden bg-background py-2 pl-3 pr-2 shadow-sm hover:bg-muted"
+            className="h-auto w-full justify-start gap-3 overflow-hidden border-border/70 bg-background py-2 pl-3 pr-2 hover:bg-muted"
             onClick={onNewChat}
             aria-label="Create new chat"
           >
-            <div className="bg-primary/10 p-1 rounded-full">
+            <div className="rounded-full bg-primary/12 p-1">
               <Plus className="h-4 w-4 text-primary" />
             </div>
             <span>New chat</span>
@@ -153,8 +153,10 @@ export function ChatSidebar({
                       <div
                         key={session.id}
                         className={cn(
-                          "group grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 rounded-md",
-                          isActive ? "bg-primary/10" : "hover:bg-accent"
+                          "group grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 rounded-md border border-transparent transition-colors",
+                          isActive
+                            ? "border-primary/10 bg-primary/10"
+                            : "hover:bg-accent/60"
                         )}
                       >
                         <Button
@@ -187,9 +189,9 @@ export function ChatSidebar({
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t space-y-2">
+        <div className="space-y-2 border-t border-sidebar-border/80 p-4">
           <div className="flex w-full items-center px-1 py-1">
-            <Avatar className="h-7 w-7 mr-3 border">
+            <Avatar className="mr-3 h-7 w-7 border border-border/70 shadow-sm shadow-primary/10">
               <AvatarImage src={DEFAULT_USER_AVATAR_SRC} alt={DEFAULT_USER_NAME} />
               <AvatarFallback>{DEFAULT_USER_AVATAR_FALLBACK}</AvatarFallback>
             </Avatar>

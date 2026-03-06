@@ -26,9 +26,9 @@ export function ChatHeader({
   onSelectModel,
 }: ChatHeaderProps) {
   return (
-    <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b bg-background/70 px-4 backdrop-blur-md sm:px-6">
+    <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b border-border/70 bg-background/72 px-4 backdrop-blur-xl sm:px-6">
       <div className="min-w-0">
-        <span className="block truncate text-base font-semibold">{title}</span>
+        <span className="block truncate text-base font-semibold tracking-tight text-foreground">{title}</span>
       </div>
 
       <div className="flex items-center gap-2">
@@ -36,13 +36,13 @@ export function ChatHeader({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="h-9 max-w-48 gap-2 px-3">
+            <Button variant="outline" className="h-9 max-w-48 gap-2 border-border/80 bg-card/80 px-3 shadow-sm shadow-primary/10">
               <span className="truncate text-xs sm:text-sm">{selectedModel.label}</span>
               <ChevronDown className="h-4 w-4 shrink-0" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-72">
-            <DropdownMenuLabel>Modelos disponíveis</DropdownMenuLabel>
+            <DropdownMenuLabel>Available models</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuRadioGroup value={selectedModel.id} onValueChange={onSelectModel}>
               {models.map((model) => (

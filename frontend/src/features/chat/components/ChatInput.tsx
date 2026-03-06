@@ -50,7 +50,7 @@ export function ChatInput({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full bg-linear-to-t from-background via-background to-transparent pt-10 pb-6 px-4">
+    <form onSubmit={handleSubmit} className="w-full bg-linear-to-t from-background via-background/95 to-transparent px-4 pt-10 pb-6">
       <div className="max-w-4xl mx-auto">
         {/* Documentos anexados */}
         {attachedDocuments.length > 0 && (
@@ -69,12 +69,12 @@ export function ChatInput({
                 Clear all
               </Button>
             </div>
-            <ScrollArea className="h-20 border rounded-lg p-2 bg-muted/30">
+            <ScrollArea className="h-20 rounded-xl border border-border/70 bg-card/70 p-2">
               <div className="space-y-1">
                 {attachedDocuments.map((doc, index) => (
                   <div
                     key={`${doc.filename}-${index}`}
-                    className="flex items-center gap-2 p-1.5 bg-background rounded border"
+                    className="flex items-center gap-2 rounded-lg border border-border/60 bg-background/80 p-1.5"
                   >
                     <FileText className="h-3 w-3 text-primary shrink-0" />
                     <span className="text-xs text-muted-foreground truncate flex-1">
@@ -95,21 +95,21 @@ export function ChatInput({
             </ScrollArea>
           </div>
         )}
-        <div className="relative bg-background rounded-xl border shadow-xl shadow-muted/20 focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary transition-all flex items-end p-2 gap-2">
+        <div className="relative flex items-end gap-2 rounded-[1.4rem] border-2 border-border/60 bg-card/90 p-2 transition-all focus-within:border-primary focus-within:bg-primary/5">
            <Button
              type="button"
              variant="ghost"
              size="icon"
-             className="text-muted-foreground hover:text-foreground shrink-0 mb-1"
-             title="Attach files"
-             onClick={onOpenDocumentUpload}
-           >
+              className="shrink-0 self-center text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              title="Attach files"
+              onClick={onOpenDocumentUpload}
+            >
              <Paperclip className="h-5 w-5" />
            </Button>
            <textarea
               ref={textareaRef}
-              className="w-full bg-transparent border-none py-3 text-[15px] leading-relaxed text-foreground placeholder-muted-foreground focus:ring-0 focus-visible:outline-none resize-none max-h-48 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              placeholder="Message RAG Assistant..."
+              className="max-h-48 w-full resize-none overflow-y-auto border-none bg-transparent py-3 text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground focus:ring-0 focus-visible:outline-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              placeholder="Ask something about your documents..."
               rows={1}
               style={{ minHeight: "48px" }}
               value={message}
@@ -117,16 +117,16 @@ export function ChatInput({
               onKeyDown={handleKeyDown}
               disabled={isLoading}
             />
-           <Button
-             type="submit"
-             className="rounded-lg shadow-md mb-1 h-9 w-9 p-0 shrink-0"
-             size="icon"
-             disabled={!message.trim() || isLoading}
-           >
+            <Button
+              type="submit"
+              className="h-9 w-9 shrink-0 self-center rounded-xl p-0 shadow-none"
+              size="icon"
+              disabled={!message.trim() || isLoading}
+            >
              <ArrowUp className="h-5 w-5" />
            </Button>
         </div>
-        <p className="text-center text-xs text-muted-foreground mt-3 font-light">
+        <p className="mt-3 text-center text-xs font-light text-muted-foreground">
           RAG Assistant can make mistakes. Consider checking important information.
         </p>
       </div>
