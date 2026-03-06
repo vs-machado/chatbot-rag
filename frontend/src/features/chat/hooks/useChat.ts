@@ -22,6 +22,25 @@ const createLocalId = () => {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
+const createNewLocalSession = (): ChatSession => {
+  const now = new Date()
+
+  return {
+    id: createLocalId(),
+    title: NEW_CHAT_TITLE,
+    date: now,
+    messages: [
+      {
+        id: createLocalId(),
+        role: NEW_CHAT_WELCOME_MESSAGE.role,
+        content: NEW_CHAT_WELCOME_MESSAGE.content,
+        timestamp: now,
+      },
+    ],
+    _isPersisted: false,
+  }
+}
+
 export interface UseChatReturn {
   sessions: ChatSession[]
   activeSessionId: string
@@ -73,27 +92,23 @@ export const useChat = (): UseChatReturn => {
 
       try {
         const backendSessions = await listChatSessions()
+        const initialSession = createNewLocalSession()
+
         if (backendSessions.length > 0) {
           // Marca todas as sessões carregadas como persistidas
           const persistedSessions = backendSessions.map(s => ({ ...s, _isPersisted: true }))
-          setSessions(persistedSessions)
-          setActiveSessionId(backendSessions[0].id)
-
-          // Carrega mensagens da primeira sessão automaticamente
-          try {
-            const sessionWithMessages = await getChatSession(backendSessions[0].id)
-            setSessions((currentSessions) =>
-              currentSessions.map((s) =>
-                s.id === backendSessions[0].id ? { ...sessionWithMessages, _isPersisted: true } : s
-              )
-            )
-          } catch (err) {
-            console.error('Erro ao carregar mensagens da sessão inicial:', err)
-          }
+          setSessions([initialSession, ...persistedSessions])
+          setActiveSessionId(initialSession.id)
+        } else {
+          setSessions([initialSession])
+          setActiveSessionId(initialSession.id)
         }
         setIsInitialized(true)
       } catch (err) {
         console.error('Erro ao carregar sessões:', err)
+        const initialSession = createNewLocalSession()
+        setSessions([initialSession])
+        setActiveSessionId(initialSession.id)
         setIsInitialized(true)
       }
     }
@@ -140,21 +155,7 @@ export const useChat = (): UseChatReturn => {
 
   const handleNewChat = useCallback(async () => {
     // Cria sessão localmente (sem salvar no backend ainda)
-    const now = new Date()
-    const newSession: ChatSession = {
-      id: createLocalId(),
-      title: NEW_CHAT_TITLE,
-      date: now,
-      messages: [
-        {
-          id: createLocalId(),
-          role: NEW_CHAT_WELCOME_MESSAGE.role,
-          content: NEW_CHAT_WELCOME_MESSAGE.content,
-          timestamp: now,
-        },
-      ],
-      _isPersisted: false, // Marca como não persistida
-    }
+    const newSession = createNewLocalSession()
 
     setSessions((currentSessions) => [newSession, ...currentSessions])
     setActiveSessionId(newSession.id)
@@ -290,7 +291,9 @@ export const useChat = (): UseChatReturn => {
           if (updatedSessions.length > 0) {
             setActiveSessionId(updatedSessions[0].id)
           } else {
-            setActiveSessionId('')
+            const newSession = createNewLocalSession()
+            setActiveSessionId(newSession.id)
+            return [newSession]
           }
         }
 

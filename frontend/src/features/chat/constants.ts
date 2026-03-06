@@ -47,7 +47,7 @@ export const RESPONSE_SOURCE_BADGE_LABELS: Record<Exclude<ResponseSource, 'NOT_A
 
 export const NEW_CHAT_WELCOME_MESSAGE: Omit<Message, "id" | "timestamp"> = {
   role: 'assistant',
-  content: '<p>New chat started. How can I help you today?</p>',
+  content: '<p>Hello. How can I help you today?</p>',
 }
 
 export const INITIAL_CHAT_SESSIONS: ChatSession[] = [
