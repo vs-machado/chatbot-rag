@@ -235,6 +235,7 @@ export const useChat = (): UseChatReturn => {
           role: result.message.role,
           content: result.message.content,
           timestamp: new Date(),
+          responseSource: result.message.responseSource,
         }
 
         // Adiciona resposta do assistente e atualiza título se fornecido

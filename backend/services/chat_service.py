@@ -1,7 +1,9 @@
+import json
 import logging
 import sys
 import time
 import uuid
+from ast import literal_eval
 from datetime import datetime
 from typing import Optional
 
@@ -11,7 +13,15 @@ from sqlalchemy.orm import Session
 
 from config import LLM_TEMPERATURE, RAG_TOP_K
 from models import ChatMessage, ChatSession
-from schemas.chat import ChatSessionCreate, ChatSessionUpdate, SendMessageRequest
+from schemas.chat import (
+    RESPONSE_SOURCE_DATABASE,
+    RESPONSE_SOURCE_MODEL_FALLBACK,
+    RESPONSE_SOURCE_NOT_APPLICABLE,
+    ChatMessageResponse,
+    ChatSessionCreate,
+    ChatSessionUpdate,
+    SendMessageRequest,
+)
 from schemas.document import ModelConfig
 from services.document_service import search_documents
 from services.llm_service import get_llm
@@ -20,6 +30,81 @@ logger = logging.getLogger(__name__)
 
 # ID de usuário padrão temporário
 DEFAULT_USER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
+RESPONSE_SOURCE_PREFIX_DATABASE = "[[RESPONSE_SOURCE:DATABASE]]"
+RESPONSE_SOURCE_PREFIX_MODEL_FALLBACK = "[[RESPONSE_SOURCE:MODEL_FALLBACK]]"
+
+
+def serialize_message_metadata(metadata: Optional[dict]) -> Optional[str]:
+    """Serializa metadados de mensagem em JSON."""
+    if not metadata:
+        return None
+
+    return json.dumps(metadata, ensure_ascii=True)
+
+
+def parse_message_metadata(raw_metadata: Optional[str]) -> dict:
+    """Converte metadados persistidos para dicionario."""
+    if not raw_metadata:
+        return {}
+
+    try:
+        parsed_metadata = json.loads(raw_metadata)
+        return parsed_metadata if isinstance(parsed_metadata, dict) else {}
+    except json.JSONDecodeError:
+        try:
+            parsed_metadata = literal_eval(raw_metadata)
+            return parsed_metadata if isinstance(parsed_metadata, dict) else {}
+        except (ValueError, SyntaxError):
+            return {}
+
+
+def get_message_response_source(raw_metadata: Optional[str], role: str) -> str:
+    """Extrai a origem da resposta a partir dos metadados."""
+    if role != "assistant":
+        return RESPONSE_SOURCE_NOT_APPLICABLE
+
+    metadata = parse_message_metadata(raw_metadata)
+    response_source = metadata.get("response_source")
+
+    if response_source in {
+        RESPONSE_SOURCE_DATABASE,
+        RESPONSE_SOURCE_MODEL_FALLBACK,
+        RESPONSE_SOURCE_NOT_APPLICABLE,
+    }:
+        return response_source
+
+    return RESPONSE_SOURCE_MODEL_FALLBACK
+
+
+def build_chat_message_response(message: ChatMessage) -> ChatMessageResponse:
+    """Converte modelo ORM em schema de resposta com status de grounding."""
+    return ChatMessageResponse(
+        id=message.id,
+        session_id=message.session_id,
+        content=message.content,
+        role=message.role,
+        timestamp=message.timestamp,
+        metadata=message.metadata_,
+        response_source=get_message_response_source(message.metadata_, message.role),
+    )
+
+
+def normalize_assistant_response(content: str, context_used: bool) -> tuple[str, str]:
+    """Remove marcadores internos da LLM e identifica a origem da resposta."""
+    normalized_content = content.strip()
+
+    if normalized_content.startswith(RESPONSE_SOURCE_PREFIX_DATABASE):
+        cleaned_content = normalized_content.removeprefix(RESPONSE_SOURCE_PREFIX_DATABASE).strip()
+        return cleaned_content, RESPONSE_SOURCE_DATABASE
+
+    if normalized_content.startswith(RESPONSE_SOURCE_PREFIX_MODEL_FALLBACK):
+        cleaned_content = normalized_content.removeprefix(RESPONSE_SOURCE_PREFIX_MODEL_FALLBACK).strip()
+        return cleaned_content, RESPONSE_SOURCE_MODEL_FALLBACK
+
+    response_source = (
+        RESPONSE_SOURCE_DATABASE if context_used else RESPONSE_SOURCE_MODEL_FALLBACK
+    )
+    return normalized_content, response_source
 
 
 def create_session(db: Session, session_data: ChatSessionCreate) -> ChatSession:
@@ -104,7 +189,7 @@ def add_message(
         session_id=session_id,
         content=message_data.content,
         role=message_data.role,
-        metadata_=str(message_data.metadata) if message_data.metadata else None,
+        metadata_=serialize_message_metadata(message_data.metadata),
     )
 
     db.add(db_message)
@@ -239,7 +324,10 @@ def send_message_with_rag(
             (
                 "system",
                 "Você é um assistente inteligente que responde perguntas baseado majoritariamente no contexto fornecido. "
-                "Se o contexto não contiver informações suficientes, diga (INFO NOT FOUND ON DATABASE) e então forneça uma resposta baseada em seu conhecimento próprio. "
+                "Comece TODA resposta com exatamente um dos seguintes marcadores internos: "
+                "[[RESPONSE_SOURCE:DATABASE]] quando a resposta estiver sustentada pelo contexto; "
+                "[[RESPONSE_SOURCE:MODEL_FALLBACK]] quando o contexto não trouxer informação suficiente e você precisar complementar com conhecimento próprio. "
+                "Nao explique nem mencione os marcadores fora do prefixo inicial. "
                 "Seja conciso e direto em suas respostas.",
             ),
             (
@@ -290,6 +378,11 @@ def send_message_with_rag(
             )
         else:
             assistant_content = str(raw_content)
+
+        assistant_content, response_source = normalize_assistant_response(
+            assistant_content,
+            len(context_parts) > 0,
+        )
 
         logger.info(f"[RAG Service] Geração LLM: {time.time() - step_start:.3f}s")
         sys.stdout.flush()
@@ -346,6 +439,7 @@ def send_message_with_rag(
         logger.error(f"[RAG Service] Erro na geração LLM após {time.time() - step_start:.3f}s: {str(e)}")
         sys.stdout.flush()
         assistant_content = f"Erro ao gerar resposta: {str(e)}"
+        response_source = RESPONSE_SOURCE_NOT_APPLICABLE
 
     # 6. Salva resposta do assistente no banco
     step_start = time.time()
@@ -355,6 +449,7 @@ def send_message_with_rag(
         metadata={
             "sources": sources,
             "context_used": len(context_parts) > 0,
+            "response_source": response_source,
         },
     )
     assistant_db_message = add_message(db, session_id, assistant_msg_data)

@@ -1,11 +1,22 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from config import RAG_TOP_K
 from schemas.document import ModelConfig
+
+
+RESPONSE_SOURCE_DATABASE = "DATABASE"
+RESPONSE_SOURCE_MODEL_FALLBACK = "MODEL_FALLBACK"
+RESPONSE_SOURCE_NOT_APPLICABLE = "NOT_APPLICABLE"
+
+ResponseSource = Literal[
+    "DATABASE",
+    "MODEL_FALLBACK",
+    "NOT_APPLICABLE",
+]
 
 
 class ChatMessageBase(BaseModel):
@@ -30,6 +41,10 @@ class ChatMessageResponse(ChatMessageBase):
     session_id: UUID
     timestamp: datetime
     metadata: Optional[str] = Field(None, alias="metadata_")
+    response_source: Optional[ResponseSource] = Field(
+        None,
+        description="Indica se a resposta veio do banco vetorial ou de fallback do modelo",
+    )
 
 
 class ChatSessionBase(BaseModel):

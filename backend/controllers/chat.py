@@ -96,14 +96,7 @@ def get_session_controller(session_id: uuid.UUID, db: Session) -> ChatSessionDet
         message_count = len(messages)
 
         message_responses = [
-            ChatMessageResponse(
-                id=msg.id,
-                session_id=msg.session_id,
-                content=msg.content,
-                role=msg.role,
-                timestamp=msg.timestamp,
-                metadata=msg.metadata_,
-            )
+            chat_service.build_chat_message_response(msg)
             for msg in messages
         ]
 
@@ -174,14 +167,7 @@ def add_message_controller(
         if not db_message:
             raise HTTPException(status_code=404, detail="Sessão não encontrada")
 
-        return ChatMessageResponse(
-            id=db_message.id,
-            session_id=db_message.session_id,
-            content=db_message.content,
-            role=db_message.role,
-            timestamp=db_message.timestamp,
-            metadata=db_message.metadata_,
-        )
+        return chat_service.build_chat_message_response(db_message)
     except HTTPException:
         raise
     except Exception as e:
@@ -204,14 +190,7 @@ def list_messages_controller(
         total = chat_service.count_messages(db, session_id)
 
         message_responses = [
-            ChatMessageResponse(
-                id=msg.id,
-                session_id=msg.session_id,
-                content=msg.content,
-                role=msg.role,
-                timestamp=msg.timestamp,
-                metadata=msg.metadata_,
-            )
+            chat_service.build_chat_message_response(msg)
             for msg in messages
         ]
 
@@ -263,26 +242,9 @@ def send_message_with_rag_controller(
         logger.info(f"[RAG] Concluído em {duration:.2f}s - session_id: {session_id}")
         sys.stdout.flush()
 
-        user_msg = result["user_message"]
-        assistant_msg = result["assistant_message"]
-
         return ChatRAGResponse(
-            user_message=ChatMessageResponse(
-                id=user_msg.id,
-                session_id=user_msg.session_id,
-                content=user_msg.content,
-                role=user_msg.role,
-                timestamp=user_msg.timestamp,
-                metadata=user_msg.metadata_,
-            ),
-            assistant_message=ChatMessageResponse(
-                id=assistant_msg.id,
-                session_id=assistant_msg.session_id,
-                content=assistant_msg.content,
-                role=assistant_msg.role,
-                timestamp=assistant_msg.timestamp,
-                metadata=assistant_msg.metadata_,
-            ),
+            user_message=chat_service.build_chat_message_response(result["user_message"]),
+            assistant_message=chat_service.build_chat_message_response(result["assistant_message"]),
             sources=[DocumentSource(**source) for source in result["sources"]],
             context_used=result["context_used"],
             title=result.get("title"),

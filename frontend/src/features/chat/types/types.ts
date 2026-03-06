@@ -1,8 +1,11 @@
+export type ResponseSource = 'DATABASE' | 'MODEL_FALLBACK' | 'NOT_APPLICABLE'
+
 export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+  responseSource?: ResponseSource
 }
 
 export interface ChatModelOption {

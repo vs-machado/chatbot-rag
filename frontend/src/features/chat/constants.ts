@@ -1,4 +1,4 @@
-import type { ChatModelOption, ChatSession, Message } from './types/types'
+import type { ChatModelOption, ChatSession, Message, ResponseSource } from './types/types'
 
 export const NEW_CHAT_TITLE = 'New chat'
 
@@ -33,6 +33,17 @@ export const DEFAULT_USER_AVATAR_SRC =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuAQD5UnORwz1VbrJnNxbbEgOuT7KMEzzr-XTaFy39tTf1L-hhpKXfvqFzRnj0xeu0OG_nlQfO2qo5ZO4TtPnXKPKJLSAS-8oMaS5BQ2cCGo5mgZ4jmKjRSU_D6C7p8P_AXUmPFqdj2-ixMPkTjSf6qaIfDiPxdVe1Yl20xRw0Qh41Pz3m0XHVsThRSFsD0EFiokVS0h83kupoOKFRS53EFEs28HjxZor73lvnbs8Yqp32jCgWTWxT3x21uyFR4NBaL46V7TBH8h'
 
 export const DEFAULT_USER_AVATAR_FALLBACK = 'DU'
+
+export const CHAT_RESPONSE_SOURCE = {
+  DATABASE: 'DATABASE',
+  MODEL_FALLBACK: 'MODEL_FALLBACK',
+  NOT_APPLICABLE: 'NOT_APPLICABLE',
+} as const satisfies Record<string, ResponseSource>
+
+export const RESPONSE_SOURCE_BADGE_LABELS: Record<Exclude<ResponseSource, 'NOT_APPLICABLE'>, string> = {
+  DATABASE: 'Retrieved from database',
+  MODEL_FALLBACK: 'General Knowledge',
+}
 
 export const NEW_CHAT_WELCOME_MESSAGE: Omit<Message, "id" | "timestamp"> = {
   role: 'assistant',

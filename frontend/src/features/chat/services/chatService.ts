@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { api } from '@/services/api'
-import type { ChatModelOption, Message, ChatSession } from '../types/types'
+import type { ChatModelOption, Message, ResponseSource, ChatSession } from '../types/types'
 import { chatLogger, createRequestTimer } from '@/lib/logger'
 
 // Tipos da API backend
@@ -33,6 +33,7 @@ export interface ChatMessageResponse {
   role: 'user' | 'assistant' | 'system'
   timestamp: string
   metadata?: string
+  response_source?: ResponseSource
 }
 
 export interface DocumentSource {
@@ -74,6 +75,7 @@ const toMessage = (apiMessage: ChatMessageResponse): Message => ({
   role: apiMessage.role as 'user' | 'assistant',
   content: apiMessage.content,
   timestamp: new Date(apiMessage.timestamp),
+  responseSource: apiMessage.response_source,
 })
 
 const toChatSession = (apiSession: ChatSessionResponse, messages: Message[] = []): ChatSession => ({

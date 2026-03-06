@@ -2,21 +2,34 @@ import { useState } from "react";
 import { Bot, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DEFAULT_USER_AVATAR_FALLBACK,
   DEFAULT_USER_AVATAR_SRC,
+  RESPONSE_SOURCE_BADGE_LABELS,
 } from "../constants";
+import type { ResponseSource } from "../types/types";
 
 interface ChatMessageProps {
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+  responseSource?: ResponseSource;
 }
 
-export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
+const responseSourceBadgeStyles: Record<Exclude<ResponseSource, "NOT_APPLICABLE">, string> = {
+  DATABASE:
+    "border-primary/20 bg-primary/10 text-primary dark:border-primary/25 dark:bg-primary/15 dark:text-primary",
+  MODEL_FALLBACK:
+    "border-border/80 bg-muted/80 text-muted-foreground dark:border-border dark:bg-muted/70 dark:text-foreground/80",
+};
+
+export function ChatMessage({ role, content, timestamp, responseSource }: ChatMessageProps) {
   const isUser = role === "user";
   const [copied, setCopied] = useState(false);
+  const showResponseSourceBadge =
+    !isUser && responseSource && responseSource !== "NOT_APPLICABLE";
 
   const handleCopy = async () => {
     try {
@@ -48,7 +61,19 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
 
       <div className={cn("min-w-0 flex-1 space-y-2", isUser && "text-right")}>
         <div className={cn("flex items-baseline justify-between", isUser && "justify-end gap-2")}>
-          {!isUser && <span className="text-sm font-semibold">Assistant</span>}
+          {!isUser && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">Assistant</span>
+              {showResponseSourceBadge && responseSource ? (
+                <Badge
+                  variant="outline"
+                  className={cn("border", responseSourceBadgeStyles[responseSource])}
+                >
+                  {RESPONSE_SOURCE_BADGE_LABELS[responseSource]}
+                </Badge>
+              ) : null}
+            </div>
+          )}
           <span className="text-xs text-muted-foreground">{timestamp}</span>
           {isUser && <span className="text-sm font-semibold">You</span>}
         </div>

@@ -68,14 +68,15 @@ export function Chat() {
                  <AlertDescription>{error}</AlertDescription>
                </Alert>
              )}
-            {activeMessages.map((message) => (
-              <ChatMessage
-                key={message.id}
-                role={message.role}
-                content={message.content}
-                timestamp={formatTime(message.timestamp)}
-              />
-            ))}
+             {activeMessages.map((message) => (
+               <ChatMessage
+                 key={message.id}
+                 role={message.role}
+                 content={message.content}
+                 timestamp={formatTime(message.timestamp)}
+                  responseSource={message.responseSource}
+                />
+             ))}
             {isLoading && (
               <div className="flex justify-center py-4">
                 <div className="animate-pulse flex space-x-2">
