@@ -124,10 +124,10 @@ export function ChatSidebar({
           </div>
         </div>
 
-        <div className="p-4">
+        <div className="px-3 py-4 pr-5">
           <Button
             variant="outline"
-            className="w-full justify-start gap-3 px-4 py-6 bg-background hover:bg-muted border-input shadow-sm"
+            className="h-auto w-full justify-start gap-3 overflow-hidden bg-background py-2 pl-3 pr-2 shadow-sm hover:bg-muted"
             onClick={onNewChat}
             aria-label="Create new chat"
           >
