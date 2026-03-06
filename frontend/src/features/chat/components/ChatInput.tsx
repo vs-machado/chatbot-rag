@@ -106,10 +106,10 @@ export function ChatInput({
             >
              <Paperclip className="h-5 w-5" />
            </Button>
-           <textarea
-              ref={textareaRef}
-              className="max-h-48 w-full resize-none overflow-y-auto border-none bg-transparent py-3 text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground focus:ring-0 focus-visible:outline-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              placeholder="Ask something about your documents..."
+            <textarea
+               ref={textareaRef}
+               className="max-h-48 w-full resize-none overflow-y-auto border-none bg-transparent py-3 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:ring-0 focus-visible:outline-none sm:text-[15px] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+               placeholder="Ask about your documents..."
               rows={1}
               style={{ minHeight: "48px" }}
               value={message}
