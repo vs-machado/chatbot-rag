@@ -62,6 +62,9 @@ export function Chat() {
     <div className="relative flex h-screen overflow-hidden bg-background">
       <ChatSidebar
         className="hidden md:flex"
+        models={availableModels}
+        selectedModel={selectedModel}
+        onSelectModel={handleSelectModel}
         sessions={sessions}
         activeSessionId={activeSessionId}
         onNewChat={handleNewChat}
@@ -98,6 +101,9 @@ export function Chat() {
         <ChatSidebar
           className="flex w-full"
           isMobile
+          models={availableModels}
+          selectedModel={selectedModel}
+          onSelectModel={handleSelectModel}
           sessions={sessions}
           activeSessionId={activeSessionId}
           onNewChat={handleNewChatWithClose}

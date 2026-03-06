@@ -37,13 +37,13 @@ export function ChatHeader({
           onClick={onOpenSidebar}
           aria-label="Open chat sidebar"
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-6 w-6" strokeWidth={2.5} />
         </Button>
 
         <span className="block truncate text-base font-semibold tracking-tight text-foreground">{title}</span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="hidden items-center gap-2 md:flex">
         <ModeToggle />
 
         <DropdownMenu>

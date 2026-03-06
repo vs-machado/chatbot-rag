@@ -1,10 +1,20 @@
 import { useMemo, useState } from "react";
-import { Bot, Plus, Trash2 } from "lucide-react";
+import { Bot, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import type { ChatSession } from "../types/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ModeToggle } from "@/features/mode-toggle";
+import type { ChatModelOption, ChatSession } from "../types/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +34,9 @@ import {
 interface ChatSidebarProps {
   className?: string;
   isMobile?: boolean;
+  models?: ChatModelOption[];
+  selectedModel?: ChatModelOption;
+  onSelectModel?: (modelId: string) => void;
   sessions: ChatSession[];
   activeSessionId: string;
   onNewChat: () => void;
@@ -61,6 +74,9 @@ function getSessionGroupLabel(sessionDate: Date): string {
 export function ChatSidebar({
   className,
   isMobile = false,
+  models = [],
+  selectedModel,
+  onSelectModel,
   sessions,
   activeSessionId,
   onNewChat,
@@ -104,6 +120,8 @@ export function ChatSidebar({
     return session?.title || "";
   }, [sessionToDelete, sessions]);
 
+  const showMobilePreferences = isMobile && selectedModel && onSelectModel;
+
   return (
     <>
       <aside
@@ -128,6 +146,45 @@ export function ChatSidebar({
             </div>
           </div>
         </div>
+
+        {showMobilePreferences ? (
+          <div className="space-y-3 border-b border-sidebar-border/80 px-4 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-medium text-muted-foreground">
+                Preferences
+              </span>
+              <ModeToggle />
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-9 w-full justify-between gap-2 border-border/80 bg-background/80 px-3 shadow-sm shadow-primary/10"
+                >
+                  <span className="truncate text-sm">{selectedModel.label}</span>
+                  <ChevronDown className="h-4 w-4 shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-72 max-w-[calc(85vw-2rem)]">
+                <DropdownMenuLabel>Available models</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={selectedModel.id} onValueChange={onSelectModel}>
+                  {models.map((model) => (
+                    <DropdownMenuRadioItem key={`${model.provider}-${model.id}`} value={model.id}>
+                      <div className="flex w-full items-center justify-between gap-2">
+                        <span className="truncate">{model.label}</span>
+                        <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
+                          {model.provider}
+                        </span>
+                      </div>
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : null}
 
         <div className="px-3 py-4 pr-5">
           <Button
