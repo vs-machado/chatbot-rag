@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <img width="48%" alt="Chat interface screenshot" src="https://github.com/user-attachments/assets/fa79630a-ee79-4009-a4e9-a2e7dd7aa0fb" />
+  <img width="100%" alt="Chat interface screenshot" src="https://github.com/user-attachments/assets/fa79630a-ee79-4009-a4e9-a2e7dd7aa0fb" />
 
-  <img width="48%" alt="Document upload and knowledge base screenshot" src="https://github.com/user-attachments/assets/e2b0d3fb-c026-4f67-ac9a-e41891cac08c" />
+  <img width="100%" alt="Document upload and knowledge base screenshot" src="https://github.com/user-attachments/assets/e2b0d3fb-c026-4f67-ac9a-e41891cac08c" />
 
 </p>
 
