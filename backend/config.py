@@ -67,6 +67,11 @@ OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/ap
 OPENROUTER_SITE_URL = os.getenv("OPENROUTER_SITE_URL", "")
 OPENROUTER_APP_NAME = os.getenv("OPENROUTER_APP_NAME", "chatbot-rag")
 
+# Configuração de CORS
+CORS_ALLOWED_ORIGINS = os.getenv(
+    "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000,http://localhost:80"
+).split(",")
+
 # Configuração de chunking para documentos
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "200"))

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from config import EMBEDDING_MODEL, EMBEDDING_PROVIDER
+from config import EMBEDDING_MODEL, EMBEDDING_PROVIDER, CORS_ALLOWED_ORIGINS
 from database import Base, engine
 from routers import chat, documents
 
@@ -53,7 +53,7 @@ app = FastAPI(title="Chatbot RAG API", version="0.1.0", lifespan=lifespan)
 # Configuração de CORS para permitir requisições do frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:80"],
+    allow_origins=CORS_ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
