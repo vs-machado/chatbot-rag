@@ -1,1 +1,1 @@
-export { uploadDocument, processTempDocument } from './documentService'
+export { getUploadJobStatus, uploadDocument, processTempDocument } from './documentService'

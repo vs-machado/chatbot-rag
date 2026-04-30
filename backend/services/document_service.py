@@ -1,3 +1,5 @@
+import io
+import json
 import uuid
 from typing import Optional
 
@@ -9,38 +11,43 @@ from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from config import CHUNK_OVERLAP, CHUNK_SIZE
+from database import SessionLocal
 from models import Document
 from schemas.document import DocumentCreate, DocumentSearchResult, ModelConfig
-from services.embedding_service import generate_embedding
+from services.embedding_service import generate_embedding, generate_embeddings
+from services.upload_job_service import update_upload_job
 
 
-def extract_text_from_file(file: UploadFile) -> str:
+def extract_text_from_stream(content_type: str | None, file_stream: io.BytesIO) -> str:
     """Extrai texto de um arquivo baseado no tipo MIME."""
     content = ""
-    file.file.seek(0)
+    content_type = content_type or ""
+    file_stream.seek(0)
 
-    if file.content_type == "application/pdf":
-        reader = PdfReader(file.file)
+    if content_type == "application/pdf":
+        reader = PdfReader(file_stream)
         for page in reader.pages:
             content += page.extract_text() + "\n"
 
-    elif (
-        file.content_type
-        == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ):
-        doc = docx.Document(file.file)
+    elif content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        doc = docx.Document(file_stream)
         for para in doc.paragraphs:
             content += para.text + "\n"
 
-    elif file.content_type.startswith("text/"):
-        content = file.file.read().decode("utf-8")
+    elif content_type.startswith("text/"):
+        content = file_stream.read().decode("utf-8")
 
     else:
         raise HTTPException(
-            status_code=400, detail=f"Tipo de arquivo não suportado: {file.content_type}"
+            status_code=400, detail=f"Tipo de arquivo não suportado: {content_type}"
         )
 
     return content
+
+
+def extract_text_from_file(file: UploadFile) -> str:
+    """Extrai texto de um arquivo enviado via FastAPI."""
+    return extract_text_from_stream(file.content_type, file.file)
 
 
 def create_document(db: Session, doc_data: DocumentCreate) -> Document:
@@ -92,6 +99,26 @@ def process_and_create_documents_from_file(
 ) -> list[Document]:
     """Processa um arquivo, divide em chunks e cria documentos."""
     text = extract_text_from_file(file)
+
+    return create_documents_from_text(
+        db=db,
+        text=text,
+        filename=file.filename or "arquivo",
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        model_config=model_config,
+    )
+
+
+def create_documents_from_text(
+    db: Session,
+    text: str,
+    filename: str,
+    chunk_size: int = CHUNK_SIZE,
+    chunk_overlap: int = CHUNK_OVERLAP,
+    model_config: Optional[ModelConfig] = None,
+) -> list[Document]:
+    """Cria documentos a partir de texto já extraído."""
     if not text.strip():
         raise HTTPException(status_code=400, detail="Arquivo vazio ou sem texto extraível")
 
@@ -102,6 +129,9 @@ def process_and_create_documents_from_file(
     )
 
     chunks = text_splitter.split_text(text)
+    if not chunks:
+        raise HTTPException(status_code=400, detail="Nenhum chunk válido foi gerado")
+
     created_docs = []
 
     # Extrai configs
@@ -114,20 +144,23 @@ def process_and_create_documents_from_file(
         model_config.api_keys.openai_api_key if model_config and model_config.api_keys else None
     )
 
-    for i, chunk in enumerate(chunks):
-        embedding = generate_embedding(
-            chunk,
-            provider=provider,
-            model=model,
-            google_api_key=api_key_google,
-            openai_api_key=api_key_openai,
-        )
+    embeddings = generate_embeddings(
+        chunks,
+        provider=provider,
+        model=model,
+        google_api_key=api_key_google,
+        openai_api_key=api_key_openai,
+    )
 
+    for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
         doc = Document(
-            title=f"{file.filename} - Parte {i + 1}",
+            title=f"{filename} - Parte {i + 1}",
             content=chunk,
             embedding=embedding,
-            metadata_=f'{{"source": "{file.filename}", "chunk": {i}, "total_chunks": {len(chunks)}}}',
+            metadata_=json.dumps(
+                {"source": filename, "chunk": i, "total_chunks": len(chunks)},
+                ensure_ascii=True,
+            ),
         )
         db.add(doc)
         created_docs.append(doc)
@@ -137,6 +170,121 @@ def process_and_create_documents_from_file(
         db.refresh(doc)
 
     return created_docs
+
+
+def process_and_create_documents_in_background(
+    job_id: uuid.UUID,
+    filename: str,
+    content_type: str,
+    file_bytes: bytes,
+    chunk_size: int = CHUNK_SIZE,
+    chunk_overlap: int = CHUNK_OVERLAP,
+    model_config: Optional[ModelConfig] = None,
+) -> None:
+    """Processa documentos em background e atualiza progresso do job."""
+    db = SessionLocal()
+    try:
+        update_upload_job(
+            job_id,
+            status="processing",
+            message="Extraindo texto do arquivo.",
+            progress_percentage=10,
+        )
+        text = extract_text_from_stream(content_type, io.BytesIO(file_bytes))
+        if not text.strip():
+            raise HTTPException(status_code=400, detail="Arquivo vazio ou sem texto extraível")
+
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            length_function=len,
+        )
+        chunks = text_splitter.split_text(text)
+        if not chunks:
+            raise HTTPException(status_code=400, detail="Nenhum chunk válido foi gerado")
+
+        update_upload_job(
+            job_id,
+            message="Gerando chunks do documento.",
+            progress_percentage=25,
+            total_chunks=len(chunks),
+            processed_chunks=0,
+        )
+
+        provider = model_config.provider if model_config else None
+        model = model_config.model if model_config else None
+        api_key_google = (
+            model_config.api_keys.google_api_key if model_config and model_config.api_keys else None
+        )
+        api_key_openai = (
+            model_config.api_keys.openai_api_key if model_config and model_config.api_keys else None
+        )
+
+        update_upload_job(
+            job_id,
+            message="Gerando embeddings do documento.",
+            progress_percentage=45,
+        )
+        embeddings = generate_embeddings(
+            chunks,
+            provider=provider,
+            model=model,
+            google_api_key=api_key_google,
+            openai_api_key=api_key_openai,
+        )
+
+        created_docs = []
+        for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
+            doc = Document(
+                title=f"{filename} - Parte {i + 1}",
+                content=chunk,
+                embedding=embedding,
+                metadata_=json.dumps(
+                    {"source": filename, "chunk": i, "total_chunks": len(chunks)},
+                    ensure_ascii=True,
+                ),
+            )
+            db.add(doc)
+            created_docs.append(doc)
+
+        update_upload_job(
+            job_id,
+            message="Salvando documento na base de conhecimento.",
+            progress_percentage=85,
+            processed_chunks=len(chunks),
+        )
+
+        db.commit()
+        for doc in created_docs:
+            db.refresh(doc)
+
+        update_upload_job(
+            job_id,
+            status="completed",
+            message="Documento processado com sucesso.",
+            progress_percentage=100,
+            processed_chunks=len(chunks),
+            documents_created=len(created_docs),
+            document_ids=[doc.id for doc in created_docs],
+        )
+    except HTTPException as exc:
+        db.rollback()
+        update_upload_job(
+            job_id,
+            status="failed",
+            message="Falha ao processar documento.",
+            error=exc.detail,
+        )
+    except Exception as exc:
+        db.rollback()
+        update_upload_job(
+            job_id,
+            status="failed",
+            message="Falha ao processar documento.",
+            error=str(exc),
+        )
+    finally:
+        db.close()
 
 
 def list_documents(db: Session, skip: int = 0, limit: int = 100) -> list[Document]:

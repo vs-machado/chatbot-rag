@@ -4,7 +4,7 @@ import json
 import uuid
 from typing import Optional
 
-from fastapi import HTTPException, UploadFile
+from fastapi import BackgroundTasks, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from models import Document
@@ -12,10 +12,12 @@ from schemas.document import (
     DocumentListResponse,
     DocumentSearchRequest,
     DocumentSearchResponse,
+    UploadJobStatusResponse,
     ModelConfig,
     UploadResponse,
 )
 from services import document_service
+from services.upload_job_service import create_upload_job, get_upload_job
 
 
 async def upload_document_controller(
@@ -23,7 +25,7 @@ async def upload_document_controller(
     model_configuration: Optional[str],
     chunk_size: Optional[int],
     chunk_overlap: Optional[int],
-    db: Session,
+    background_tasks: BackgroundTasks,
 ) -> UploadResponse:
     """Controller para upload de documentos.
 
@@ -38,23 +40,39 @@ async def upload_document_controller(
             raise HTTPException(status_code=400, detail=f"Erro ao processar model_config: {str(e)}") from e
 
     try:
-        created_docs = document_service.process_and_create_documents_from_file(
-            db=db,
-            file=file,
-            chunk_size=chunk_size or 1000,
-            chunk_overlap=chunk_overlap or 200,
-            model_config=parsed_config,
+        file_bytes = await file.read()
+        job = create_upload_job(file.filename or "arquivo")
+        background_tasks.add_task(
+            document_service.process_and_create_documents_in_background,
+            job["job_id"],
+            file.filename or "arquivo",
+            file.content_type,
+            file_bytes,
+            chunk_size or 1000,
+            chunk_overlap or 200,
+            parsed_config,
         )
 
         return UploadResponse(
-            message=f"Arquivo processado com sucesso. {len(created_docs)} chunks criados.",
-            documents_created=len(created_docs),
-            document_ids=[doc.id for doc in created_docs],
+            message="Upload recebido. Processamento iniciado em background.",
+            status="queued",
+            job_id=job["job_id"],
+            documents_created=0,
+            document_ids=[],
         )
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}") from e
+
+
+def get_upload_job_status_controller(job_id: uuid.UUID) -> UploadJobStatusResponse:
+    """Retorna o status de um job de upload."""
+    job = get_upload_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job de upload não encontrado")
+
+    return UploadJobStatusResponse(**job)
 
 
 def list_documents_controller(skip: int, limit: int, db: Session) -> DocumentListResponse:

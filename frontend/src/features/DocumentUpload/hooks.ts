@@ -1,7 +1,9 @@
 import { useState, useRef, useCallback } from 'react'
 import type { UploadStatus, UploadedDocument, UseDocumentUploadReturn } from './types'
 import { validateFile } from './utils'
-import { uploadDocument } from './services'
+import { getUploadJobStatus, uploadDocument } from './services'
+
+const POLLING_INTERVAL_MS = 2000
 
 export const useDocumentUpload = (): UseDocumentUploadReturn => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -69,12 +71,30 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
 
     try {
       const data = await uploadDocument(selectedFile)
-      
-      // Adiciona o documento à lista
+
+      if (!data.job_id) {
+        throw new Error('Job de upload não foi criado')
+      }
+
+      let jobStatus = await getUploadJobStatus(data.job_id)
+
+      while (jobStatus.status === 'queued' || jobStatus.status === 'processing') {
+        setUploadMessage(
+          `${jobStatus.message} ${jobStatus.progress_percentage}%`.trim()
+        )
+
+        await new Promise((resolve) => window.setTimeout(resolve, POLLING_INTERVAL_MS))
+        jobStatus = await getUploadJobStatus(data.job_id)
+      }
+
+      if (jobStatus.status === 'failed') {
+        throw new Error(jobStatus.error || 'Erro ao processar documento')
+      }
+
       const newDoc: UploadedDocument = {
-        id: data.document_ids?.[0] || Date.now().toString(),
+        id: jobStatus.document_ids[0] || Date.now().toString(),
         filename: selectedFile.name,
-        chunks: data.documents_created || 0,
+        chunks: jobStatus.documents_created || 0,
         uploadedAt: new Date().toLocaleString('pt-BR'),
       }
       

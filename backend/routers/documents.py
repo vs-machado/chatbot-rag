@@ -3,11 +3,12 @@
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from controllers.documents import (
     delete_document_controller,
+    get_upload_job_status_controller,
     list_documents_controller,
     process_document_temporarily,
     search_documents_controller,
@@ -18,6 +19,7 @@ from schemas.document import (
     DocumentListResponse,
     DocumentSearchRequest,
     DocumentSearchResponse,
+    UploadJobStatusResponse,
     UploadResponse,
 )
 
@@ -30,11 +32,11 @@ router = APIRouter(
 
 @router.post("/upload", response_model=UploadResponse)
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     model_configuration: Optional[str] = Form(None, alias="model_config"),
     chunk_size: Optional[int] = Form(1000),
     chunk_overlap: Optional[int] = Form(200),
-    db: Session = Depends(get_db),
 ):
     """Faz upload de um arquivo (PDF, DOCX, TXT), processa e gera embeddings."""
     return await upload_document_controller(
@@ -42,8 +44,14 @@ async def upload_document(
         model_configuration=model_configuration,
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
-        db=db,
+        background_tasks=background_tasks,
     )
+
+
+@router.get("/upload-jobs/{job_id}", response_model=UploadJobStatusResponse)
+def get_upload_job_status(job_id: uuid.UUID):
+    """Consulta o andamento do processamento de um upload."""
+    return get_upload_job_status_controller(job_id)
 
 
 @router.get("/", response_model=DocumentListResponse)

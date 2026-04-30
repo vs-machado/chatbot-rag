@@ -28,8 +28,14 @@ DATABASE_URL = os.getenv(
 )
 
 # Configuração de embeddings
-EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", EmbeddingProvider.SENTENCE_TRANSFORMERS.value)
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+DEFAULT_EMBEDDING_PROVIDER = (
+    EmbeddingProvider.GOOGLE.value if os.getenv("GOOGLE_API_KEY", "") else EmbeddingProvider.SENTENCE_TRANSFORMERS.value
+)
+DEFAULT_EMBEDDING_MODEL = (
+    "models/text-embedding-004" if DEFAULT_EMBEDDING_PROVIDER == EmbeddingProvider.GOOGLE.value else "all-MiniLM-L6-v2"
+)
+EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", DEFAULT_EMBEDDING_PROVIDER)
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL)
 
 # Dimensões por modelo de embedding
 EMBEDDING_DIMENSIONS = {

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { api } from '@/services/api'
 import { CHUNK_SIZE, CHUNK_OVERLAP } from '../config'
-import type { UploadResponse, TempDocumentResponse } from '../types'
+import type { UploadJobStatusResponse, UploadResponse, TempDocumentResponse } from '../types'
 
 export const uploadDocument = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData()
@@ -36,6 +36,20 @@ export const processTempDocument = async (file: File): Promise<TempDocumentRespo
         'Content-Type': 'multipart/form-data',
       },
     })
+
+    return response.data
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message = error.response?.data?.detail || error.message
+      throw new Error(message)
+    }
+    throw error
+  }
+}
+
+export const getUploadJobStatus = async (jobId: string): Promise<UploadJobStatusResponse> => {
+  try {
+    const response = await api.get<UploadJobStatusResponse>(`/api/v1/documents/upload-jobs/${jobId}`)
 
     return response.data
   } catch (error) {

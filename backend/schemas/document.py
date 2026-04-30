@@ -121,8 +121,27 @@ class UploadResponse(BaseModel):
     """Schema de resposta para upload de arquivo."""
 
     message: str
+    status: str = "queued"
+    job_id: Optional[UUID] = None
     documents_created: int
     document_ids: list[UUID]
+
+
+class UploadJobStatusResponse(BaseModel):
+    """Schema de resposta para status de processamento de upload."""
+
+    job_id: UUID
+    filename: str
+    status: str
+    message: str
+    progress_percentage: int
+    total_chunks: int
+    processed_chunks: int
+    documents_created: int
+    document_ids: list[UUID]
+    error: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
 
 
 class ErrorResponse(BaseModel):

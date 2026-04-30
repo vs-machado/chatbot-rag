@@ -12,12 +12,14 @@ import {
 import { cn } from '@/lib/utils'
 import { ALLOWED_TYPES, MAX_FILE_SIZE } from '@/features/DocumentUpload/config'
 import { uploadDocument, processTempDocument } from '@/features/DocumentUpload/services'
-import type { TempDocumentResponse } from '@/features/DocumentUpload/types'
+import type { TempDocumentResponse, UploadJobStatusResponse } from '@/features/DocumentUpload/types'
 
 interface DocumentUploadDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onDocumentsProcessed: (documents: Array<{ content: string; filename: string }>) => void
+  onKnowledgeBaseUploadStarted: (jobs: UploadJobStatusResponse[]) => void
+  onKnowledgeBaseUploadError: (message: string) => void
 }
 
 type UploadMode = 'persist' | 'temp' | null
@@ -26,6 +28,8 @@ export function DocumentUploadDialog({
   open,
   onOpenChange,
   onDocumentsProcessed,
+  onKnowledgeBaseUploadStarted,
+  onKnowledgeBaseUploadError,
 }: DocumentUploadDialogProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [uploadMode, setUploadMode] = useState<UploadMode>(null)
@@ -94,21 +98,44 @@ export function DocumentUploadDialog({
   const handleUpload = async () => {
     if (selectedFiles.length === 0 || !uploadMode) return
 
+    const filesToUpload = [...selectedFiles]
     setIsUploading(true)
     setError(null)
 
     try {
       if (uploadMode === 'persist') {
-        // Faz upload e persiste no banco (cria embeddings) para todos os arquivos
-        for (const file of selectedFiles) {
-          await uploadDocument(file)
-        }
-        // Para persistência, informamos sucesso sem conteúdo - documentos estarão disponíveis no RAG
-        onDocumentsProcessed(selectedFiles.map((f) => ({ content: '', filename: f.name })))
+        handleClose()
+
+        const queuedJobs = await Promise.all(
+          filesToUpload.map(async (file) => {
+            const response = await uploadDocument(file)
+
+            if (!response.job_id) {
+              throw new Error('Upload job was not created')
+            }
+
+            return {
+              job_id: response.job_id,
+              filename: file.name,
+              status: 'queued' as const,
+              message: response.message,
+              progress_percentage: 0,
+              total_chunks: 0,
+              processed_chunks: 0,
+              documents_created: 0,
+              document_ids: [],
+              error: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }
+          })
+        )
+
+        onKnowledgeBaseUploadStarted(queuedJobs)
       } else {
         // Processa temporariamente (sem persistir) todos os arquivos
         const results: TempDocumentResponse[] = []
-        for (const file of selectedFiles) {
+        for (const file of filesToUpload) {
           const result = await processTempDocument(file)
           results.push(result)
         }
@@ -122,7 +149,12 @@ export function DocumentUploadDialog({
       setUploadMode(null)
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error processing files')
+      const message = err instanceof Error ? err.message : 'Error processing files'
+      if (uploadMode === 'persist') {
+        onKnowledgeBaseUploadError(message)
+      } else {
+        setError(message)
+      }
     } finally {
       setIsUploading(false)
     }

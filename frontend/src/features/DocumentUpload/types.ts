@@ -10,8 +10,25 @@ export interface UploadedDocument {
 
 export interface UploadResponse {
   message: string
+  status: string
+  job_id?: string
   documents_created: number
   document_ids?: string[]
+}
+
+export interface UploadJobStatusResponse {
+  job_id: string
+  filename: string
+  status: 'queued' | 'processing' | 'completed' | 'failed'
+  message: string
+  progress_percentage: number
+  total_chunks: number
+  processed_chunks: number
+  documents_created: number
+  document_ids: string[]
+  error?: string | null
+  created_at: string
+  updated_at: string
 }
 
 export interface TempDocumentResponse {
