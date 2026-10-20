@@ -2,7 +2,6 @@ from typing import Optional
 
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_openai import OpenAIEmbeddings
-from sentence_transformers import SentenceTransformer
 
 from config import (
     EMBEDDING_MODEL,
@@ -11,38 +10,7 @@ from config import (
     OPENAI_API_KEY,
     EmbeddingProvider,
 )
-
-# Instância singleton do modelo local de embeddings
-_local_model: SentenceTransformer | None = None
-_local_model_name: str | None = None
-
-
-def _get_local_model(model_name: str) -> SentenceTransformer:
-    """Carrega o modelo local (SentenceTransformer)."""
-    global _local_model, _local_model_name
-    # Recarrega se o modelo mudar ou ainda não existir
-    if _local_model is None or _local_model_name != model_name or _local_model.get_sentence_embedding_dimension() is None:
-        trust_remote_code = model_name.lower().startswith("qwen/")
-        _local_model = SentenceTransformer(model_name, trust_remote_code=trust_remote_code)
-        _local_model_name = model_name
-    return _local_model
-
-
-def _encode_with_optional_query_prompt(
-    model: SentenceTransformer,
-    text_or_texts: str | list[str],
-    is_query: bool,
-) -> list[float] | list[list[float]]:
-    """Codifica texto(s), usando prompt de query quando o modelo suportar."""
-    use_query_prompt = bool(
-        is_query and hasattr(model, "prompts") and "query" in (model.prompts or {})
-    )
-    if use_query_prompt:
-        embedding = model.encode(text_or_texts, convert_to_numpy=True, prompt_name="query")
-    else:
-        embedding = model.encode(text_or_texts, convert_to_numpy=True)
-
-    return embedding.tolist()
+from services.local_embeddings import local_embeddings
 
 
 def generate_embedding(
@@ -74,8 +42,7 @@ def generate_embedding(
     model = model or EMBEDDING_MODEL
 
     if provider == EmbeddingProvider.SENTENCE_TRANSFORMERS:
-        local_model = _get_local_model(model)
-        return _encode_with_optional_query_prompt(local_model, text, is_query)
+        return local_embeddings.encode(model, text, is_query)
 
     elif provider == EmbeddingProvider.GOOGLE:
         api_key = google_api_key or GOOGLE_API_KEY
@@ -114,8 +81,7 @@ def generate_embeddings(
     model = model or EMBEDDING_MODEL
 
     if provider == EmbeddingProvider.SENTENCE_TRANSFORMERS:
-        local_model = _get_local_model(model)
-        return _encode_with_optional_query_prompt(local_model, texts, is_query)
+        return local_embeddings.encode(model, texts, is_query)
 
     elif provider == EmbeddingProvider.GOOGLE:
         api_key = google_api_key or GOOGLE_API_KEY

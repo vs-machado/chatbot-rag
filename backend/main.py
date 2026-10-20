@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import sys
 from contextlib import asynccontextmanager
@@ -6,17 +7,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from config import EMBEDDING_MODEL, EMBEDDING_PROVIDER, CORS_ALLOWED_ORIGINS
+from config import CORS_ALLOWED_ORIGINS
 from database import Base, engine
 from routers import chat, documents
+from services.local_embeddings import local_embeddings
 
 # Configuração de logging para mostrar logs em tempo real no Docker
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Gerencia o ciclo de vida da aplicação.
 
-    Inicializa o banco de dados e cria tabelas na startup.
+    Inicializa o banco sem carregar modelos e encerra inferência local na saída.
     """
     # Inicialização: cria tabelas se não existirem
     # Habilita extensão pgvector e cria tabelas
@@ -36,16 +36,10 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     logger.info("Tabelas criadas/verificadas com sucesso")
 
-    # Pré-carrega o modelo de embeddings para evitar delay na primeira requisição
-    if EMBEDDING_PROVIDER == "sentence_transformers":
-        logger.info(f"Pré-carregando modelo de embeddings: {EMBEDDING_MODEL}")
-        from services.embedding_service import _get_local_model
-        _get_local_model(EMBEDDING_MODEL)
-        logger.info("Modelo de embeddings carregado com sucesso")
-
-    yield
-    # Cleanup (se necessário)
-    pass
+    try:
+        yield
+    finally:
+        await asyncio.to_thread(local_embeddings.close)
 
 
 app = FastAPI(title="Chatbot RAG API", version="0.1.0", lifespan=lifespan)

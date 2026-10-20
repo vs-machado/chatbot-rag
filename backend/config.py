@@ -29,13 +29,19 @@ DATABASE_URL = os.getenv(
 
 # Configuração de embeddings
 DEFAULT_EMBEDDING_PROVIDER = (
-    EmbeddingProvider.GOOGLE.value if os.getenv("GOOGLE_API_KEY", "") else EmbeddingProvider.SENTENCE_TRANSFORMERS.value
+    EmbeddingProvider.GOOGLE.value
+    if os.getenv("GOOGLE_API_KEY", "")
+    else EmbeddingProvider.SENTENCE_TRANSFORMERS.value
 )
 DEFAULT_EMBEDDING_MODEL = (
-    "models/text-embedding-004" if DEFAULT_EMBEDDING_PROVIDER == EmbeddingProvider.GOOGLE.value else "all-MiniLM-L6-v2"
+    "models/text-embedding-004"
+    if EmbeddingProvider.GOOGLE.value == DEFAULT_EMBEDDING_PROVIDER
+    else "all-MiniLM-L6-v2"
 )
 EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", DEFAULT_EMBEDDING_PROVIDER)
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", DEFAULT_EMBEDDING_MODEL)
+EMBEDDING_IDLE_TIMEOUT_SECONDS = float(os.getenv("EMBEDDING_IDLE_TIMEOUT_SECONDS", "300"))
+EMBEDDING_REQUEST_TIMEOUT_SECONDS = float(os.getenv("EMBEDDING_REQUEST_TIMEOUT_SECONDS", "600"))
 
 # Dimensões por modelo de embedding
 EMBEDDING_DIMENSIONS = {
