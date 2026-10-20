@@ -30,6 +30,8 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-chatbot}:${POSTGRES_PASSWORD:-chatbot123}@db:5432/${POSTGRES_DB:-chatbot_rag}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
+      EMBEDDING_IDLE_TIMEOUT_SECONDS: ${EMBEDDING_IDLE_TIMEOUT_SECONDS:-300}
+      EMBEDDING_REQUEST_TIMEOUT_SECONDS: ${EMBEDDING_REQUEST_TIMEOUT_SECONDS:-600}
       PYTHONUNBUFFERED: "1"
     volumes:
       - ./backend:/app

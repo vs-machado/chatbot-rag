@@ -46,6 +46,35 @@ Important: the chatbot works best when documents are added first. If no relevant
 - **SQLAlchemy + Alembic** - ORM and migrations
 - **Docker** - Containerization
 
+### Local embedding memory usage
+
+The API starts without loading the embedding model. Local embeddings
+run in a separate process, created on the first search or document-processing
+request. Requests are serialized within each API process to avoid duplicate model
+loads. The child exits after **300 seconds (5 minutes) of inactivity**, releasing
+its memory; the next request starts it again. Active inference is not interrupted
+by the idle timer. Use one API worker to avoid one model process per API worker.
+
+Configure `EMBEDDING_IDLE_TIMEOUT_SECONDS` (default `300`) and
+`EMBEDDING_REQUEST_TIMEOUT_SECONDS` (default `600`, including model loading) in
+the backend environment. Both values must be positive. The first operation after
+an idle period is slower; peak memory during inference remains similar. The
+model and query prompts are unchanged, so existing vectors need no reindexing.
+Document chunking uses the same splitter inside the child process, since importing
+the splitter package also imports Sentence Transformers in the installed version.
+Model files stay cached on disk for subsequent loads. This change does not add
+paid API calls or change the configured chat provider.
+Other installed libraries may still import PyTorch for tokenization utilities;
+the model weights and inference allocations live only in the disposable process.
+
+Lifecycle tests use Python's built-in `unittest` and a fake model in real child
+processes, without downloading weights or connecting to the database:
+
+```bash
+# From backend/
+python -m unittest tests.test_local_embeddings
+```
+
 ## Project Structure
 
 ```

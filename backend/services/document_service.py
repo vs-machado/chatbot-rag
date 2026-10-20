@@ -5,7 +5,6 @@ from typing import Optional
 
 import docx
 from fastapi import HTTPException, UploadFile
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pypdf import PdfReader
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
@@ -15,6 +14,7 @@ from database import SessionLocal
 from models import Document
 from schemas.document import DocumentCreate, DocumentSearchResult, ModelConfig
 from services.embedding_service import generate_embedding, generate_embeddings
+from services.local_embeddings import local_embeddings
 from services.upload_job_service import update_upload_job
 
 
@@ -122,13 +122,7 @@ def create_documents_from_text(
     if not text.strip():
         raise HTTPException(status_code=400, detail="Arquivo vazio ou sem texto extraível")
 
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        length_function=len,
-    )
-
-    chunks = text_splitter.split_text(text)
+    chunks = local_embeddings.split_text(text, chunk_size, chunk_overlap)
     if not chunks:
         raise HTTPException(status_code=400, detail="Nenhum chunk válido foi gerado")
 
@@ -194,12 +188,7 @@ def process_and_create_documents_in_background(
         if not text.strip():
             raise HTTPException(status_code=400, detail="Arquivo vazio ou sem texto extraível")
 
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            length_function=len,
-        )
-        chunks = text_splitter.split_text(text)
+        chunks = local_embeddings.split_text(text, chunk_size, chunk_overlap)
         if not chunks:
             raise HTTPException(status_code=400, detail="Nenhum chunk válido foi gerado")
 
